@@ -3,6 +3,7 @@
 
 #include "DemoMainMenu.h"
 
+#include "MySaveGame.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -31,7 +32,8 @@ void UDemoMainMenu::StartGame()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
 
-	
+	UMySaveGame* MySaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
+	MySaveGame->Save();
 }
 
 void UDemoMainMenu::QuitGame()
