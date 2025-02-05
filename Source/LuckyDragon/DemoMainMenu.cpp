@@ -47,3 +47,16 @@ void UDemoMainMenu::AfterDelay()
 {
 	UE_LOG(LogTemp,Warning,TEXT("[wyh] [%s] Delay Complete"),*FString(__FUNCTION__));
 }
+
+void UDemoMainMenu::PlayEnterAnimation()
+{
+	if (enter != nullptr)
+	{
+		PlayAnimation(enter,0.0f,1,EUMGSequencePlayMode::Forward,1.0f);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("enter is not found!"));	
+	}
+}
+

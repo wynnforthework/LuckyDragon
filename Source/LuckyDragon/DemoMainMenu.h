@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
 	class UButton* EndButton;
 
+	UPROPERTY(Transient, BlueprintReadOnly, meta=(BindWidgetAnim))
+	class UWidgetAnimation* enter;
+
 	UFUNCTION()
 	void StartGame();
 
@@ -32,6 +35,10 @@ public:
 
 	UFUNCTION()
 	void AfterDelay();
+
+	UFUNCTION()
+	void PlayEnterAnimation();
+	
 protected:
 	virtual void NativeConstruct() override;
 	virtual bool Initialize() override;

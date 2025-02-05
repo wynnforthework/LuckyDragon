@@ -43,5 +43,7 @@ void AGameActor::BeginPlay()
 		{
 			MainMenu->ContinueButton->SetVisibility(ESlateVisibility::Hidden);
 		}
+		//播放开始动画
+		MainMenu->PlayEnterAnimation();
 	}
 }
