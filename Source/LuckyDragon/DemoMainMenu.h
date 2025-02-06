@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "VaRestJsonObject.h"
 #include "Blueprint/UserWidget.h"
+#include "VaRestSubsystem.h"
 #include "DemoMainMenu.generated.h"
 
 /**
@@ -26,9 +28,14 @@ public:
 
 	UPROPERTY(Transient, BlueprintReadOnly, meta=(BindWidgetAnim))
 	class UWidgetAnimation* enter;
+	
+	UVaRestJsonObject* ResultObject;
 
 	UFUNCTION()
 	void StartGame();
+
+	UFUNCTION()
+	void ContinueGame();
 
 	UFUNCTION()
 	void QuitGame();
@@ -38,9 +45,12 @@ public:
 
 	UFUNCTION()
 	void PlayEnterAnimation();
-	
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual bool Initialize() override;
 	
+private:
+	UFUNCTION()
+	void OnRequestComplete(UVaRestRequestJSON * Result);
 };
