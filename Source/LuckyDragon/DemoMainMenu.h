@@ -28,6 +28,15 @@ public:
 
 	UPROPERTY(Transient, BlueprintReadOnly, meta=(BindWidgetAnim))
 	class UWidgetAnimation* enter;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UCanvasPanel* LogoPanel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UCanvasPanel* StoryPanel;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* StoryText;
 	
 	UVaRestJsonObject* ResultObject;
 
@@ -45,11 +54,19 @@ public:
 
 	UFUNCTION()
 	void PlayEnterAnimation();
+	void HideLogoPanel();
 
 protected:
 	virtual void NativeConstruct() override;
 	virtual bool Initialize() override;
-	
+	// 打字机效果
+	FString FullText;
+	FString DisplayedText;
+	int32 CurrentCharacterIndex;
+	FTimerHandle TypingTimerHandle;
+
+	void StartTypewriterEffect(const FString& TextToType, float Interval = 0.1f);
+	void TypeNextCharacter();
 private:
 	UFUNCTION()
 	void OnRequestComplete(UVaRestRequestJSON * Result);

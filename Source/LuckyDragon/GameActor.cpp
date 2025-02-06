@@ -7,7 +7,9 @@
 #include "MySaveGame.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 
 void AGameActor::BeginPlay()
 {
@@ -43,6 +45,8 @@ void AGameActor::BeginPlay()
 		{
 			MainMenu->ContinueButton->SetVisibility(ESlateVisibility::Hidden);
 		}
+		MainMenu->LogoPanel->SetVisibility(ESlateVisibility::Hidden);
+		MainMenu->StoryPanel->SetVisibility(ESlateVisibility::Hidden);
 		//播放开始动画
 		MainMenu->PlayEnterAnimation();
 	}

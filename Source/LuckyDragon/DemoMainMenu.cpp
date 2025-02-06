@@ -5,6 +5,8 @@
 
 #include "MySaveGame.h"
 #include "Components/Button.h"
+#include "Components/CanvasPanel.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -81,12 +83,24 @@ void UDemoMainMenu::PlayEnterAnimation()
 {
 	if (enter != nullptr)
 	{
+		LogoPanel->SetVisibility(ESlateVisibility::Visible);
 		PlayAnimation(enter,0.0f,1,EUMGSequencePlayMode::Forward,1.0f);
+		FTimerHandle DelayTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(DelayTimerHandle,[this]()
+		{
+			LogoPanel->SetVisibility(ESlateVisibility::Hidden);
+			StoryPanel->SetVisibility(ESlateVisibility::Visible);
+			StartTypewriterEffect(TEXT("在一年内，通过智慧和策略，找到那个真正爱你的人，避免被迫联姻的命运。每一次互动、每一次选择，都将影响最终的结局。你能否在这场充满谎言与真爱的战争中，找到属于你的幸福？"), 0.1f);
+		},2.0f,false);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("enter is not found!"));	
 	}
+}
+void UDemoMainMenu::HideLogoPanel()
+{
+	LogoPanel->SetVisibility(ESlateVisibility::Hidden);
 }
 void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 	UE_LOG(LogTemp, Display, TEXT("Response Complete"));
@@ -97,9 +111,41 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString role = VaRestJsonObject->GetStringField(TEXT("role"));
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
+		GEngine->AddOnScreenDebugMessage(1,2,FColor::Red,content);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
+	}
+}
+void UDemoMainMenu::StartTypewriterEffect(const FString& TextToType, float Interval)
+{
+	FullText = TextToType;
+	DisplayedText = "";
+	CurrentCharacterIndex = 0;
+
+	GetWorld()->GetTimerManager().ClearTimer(TypingTimerHandle);
+	GetWorld()->GetTimerManager().SetTimer(
+		TypingTimerHandle,
+		this,
+		&UDemoMainMenu::TypeNextCharacter,
+		Interval,
+		true
+	);
+}
+
+void UDemoMainMenu::TypeNextCharacter()
+{
+	if (CurrentCharacterIndex < FullText.Len())
+	{
+		DisplayedText += FullText.Mid(CurrentCharacterIndex, 1);
+		CurrentCharacterIndex++;
+		// UE_LOG(LogTemp, Warning, TEXT("Display: %s"), *DisplayedText);
+		StoryText->SetText(FText::FromString(DisplayedText));
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TypingTimerHandle);
+		StoryPanel->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
