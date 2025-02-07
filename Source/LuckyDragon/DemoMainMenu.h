@@ -30,31 +30,32 @@ public:
 	class UWidgetAnimation* enter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UCanvasPanel* LogoPanel;
+	class UOverlay* LogoPanel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UCanvasPanel* StoryPanel;
+	class UOverlay* StoryPanel;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UOverlay* HomePanel;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UOverlay* LoginPanel;
+			
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UOverlay* PopupPanel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UTextBlock* StoryText;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UUserWidget* PopupSureButton;
 	
 	UVaRestJsonObject* ResultObject;
 
 	UFUNCTION()
-	void StartGame();
-
-	UFUNCTION()
-	void ContinueGame();
-
-	UFUNCTION()
-	void QuitGame();
-
-	UFUNCTION()
-	void AfterDelay();
-
-	UFUNCTION()
 	void PlayEnterAnimation();
-	void HideLogoPanel();
+	
+
 
 protected:
 	virtual void NativeConstruct() override;
@@ -69,5 +70,31 @@ protected:
 	void TypeNextCharacter();
 private:
 	UFUNCTION()
+	void StartGame();
+
+	UFUNCTION()
+	void ContinueGame();
+
+	UFUNCTION()
+	void QuitGame();
+
+	UFUNCTION()
+	void AfterDelay();
+	
+	UFUNCTION()
 	void OnRequestComplete(UVaRestRequestJSON * Result);
+
+	void PlayStory();
+
+	void RequestAIData();
+	
+	void HideAllPanel();
+
+	void CheckGameState();
+	int32 NewGameState;
+	
+	void ShowPopup();
+	
+	UFUNCTION()
+	void ClosePopup();
 };

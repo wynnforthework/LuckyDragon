@@ -24,6 +24,15 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Basic")
 	uint32 UserIndex;
 
+	UPROPERTY(VisibleAnywhere, Category = "Basic")
+	uint32 UserLevel;
+	
+	UPROPERTY(VisibleAnywhere, Category = "Basic")
+	uint64 UserGold;
+
+	UPROPERTY(VisibleAnywhere, Category = "Basic")
+	uint64 GameDay;
+
 	UMySaveGame();
 
 	void AsyncSave();

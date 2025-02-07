@@ -5,7 +5,7 @@
 
 #include "MySaveGame.h"
 #include "Components/Button.h"
-#include "Components/CanvasPanel.h"
+#include "Components/Overlay.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -31,6 +31,27 @@ bool UDemoMainMenu::Initialize()
 	{
 		EndButton->OnClicked.AddDynamic(this, &UDemoMainMenu::QuitGame);
 	}
+	if (PopupSureButton)
+	{
+		// FProperty* SureButton = PopupSureButton->GetClass()->FindPropertyByName(TEXT("Button"));
+		// FObjectProperty* ButtonProperty = CastField<FObjectProperty>(SureButton);
+		// if (ButtonProperty && ButtonProperty->PropertyClass == UButton::StaticClass())
+		// {
+		// 	UButton* SureButtonWidget = Cast<UButton>(ButtonProperty->GetPropertyValue_InContainer(PopupSureButton));
+		// 	if (SureButtonWidget)
+		// 	{
+		// 		SureButtonWidget->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
+		// 	}
+		// }
+
+		UButton* SureButtonWidget = Cast<UButton>(PopupSureButton->GetWidgetFromName(TEXT("Button")));
+		if (SureButtonWidget)
+		{
+			SureButtonWidget->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
+		}
+	}
+	HideAllPanel();
+	NewGameState = 0;
 	return true;
 }
 
@@ -40,32 +61,17 @@ void UDemoMainMenu::StartGame()
 
 	UMySaveGame* MySaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
 	MySaveGame->Save();
+
+	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
+	PlayStory();
+	RequestAIData();
 }
 
 void UDemoMainMenu::ContinueGame()
 {
-	UVaRestSubsystem * VaRestSubsystem = GEngine->GetEngineSubsystem<UVaRestSubsystem>();
-	UVaRestRequestJSON * RequestJSON = VaRestSubsystem->ConstructVaRestRequestExt(EVaRestRequestVerb::POST,EVaRestRequestContentType::json);
-	UVaRestJsonObject* JsonObject = UVaRestSubsystem::StaticConstructVaRestJsonObject();
-	JsonObject->SetStringField(TEXT("role"), TEXT("user"));
-	JsonObject->SetStringField(TEXT("content"), TEXT("Hello!"));
-	const TArray<UVaRestJsonObject*> JsonArray = {JsonObject};
-	UVaRestJsonObject* JsonObject2 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
-	JsonObject2->SetStringField(TEXT("model"), TEXT("deepseek-chat"));
-	JsonObject2->SetObjectArrayField(TEXT("messages"),JsonArray);
-	RequestJSON->SetRequestObject(JsonObject2);
-	FString ApiKey;
-	const FString DefaultGamePath = FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir());
-	GConfig->GetString(TEXT("DeepSeek"), TEXT("ApiKey"), ApiKey, DefaultGamePath);
-	RequestJSON->SetHeader(TEXT("Authorization"), ApiKey);
-	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));
-	RequestJSON->OnRequestComplete.AddDynamic(this, &UDemoMainMenu::OnRequestComplete);
-	
-	FLatentActionInfo LatentInfo = FLatentActionInfo();
-	RequestJSON->ApplyURL(TEXT("https://api.deepseek.com/chat/completions"),ResultObject,this,LatentInfo);
-	// VaRestSubsystem->CallURL(TEXT("https://api.deepseek.com/chat/completions"),EVaRestRequestVerb::POST,EVaRestRequestContentType::json,JsonObject,);
+	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
+	HomePanel->SetVisibility(ESlateVisibility::Visible);
 }
-
 
 void UDemoMainMenu::QuitGame()
 {
@@ -89,8 +95,7 @@ void UDemoMainMenu::PlayEnterAnimation()
 		GetWorld()->GetTimerManager().SetTimer(DelayTimerHandle,[this]()
 		{
 			LogoPanel->SetVisibility(ESlateVisibility::Hidden);
-			StoryPanel->SetVisibility(ESlateVisibility::Visible);
-			StartTypewriterEffect(TEXT("在一年内，通过智慧和策略，找到那个真正爱你的人，避免被迫联姻的命运。每一次互动、每一次选择，都将影响最终的结局。你能否在这场充满谎言与真爱的战争中，找到属于你的幸福？"), 0.1f);
+			LoginPanel->SetVisibility(ESlateVisibility::Visible);
 		},2.0f,false);
 	}
 	else
@@ -98,10 +103,21 @@ void UDemoMainMenu::PlayEnterAnimation()
 		UE_LOG(LogTemp, Error, TEXT("enter is not found!"));	
 	}
 }
-void UDemoMainMenu::HideLogoPanel()
+void UDemoMainMenu::PlayStory()
+{
+	StoryPanel->SetVisibility(ESlateVisibility::Visible);
+	StartTypewriterEffect(TEXT("在一年内，通过智慧和策略，找到那个真正爱你的人，避免被迫联姻的命运。每一次互动、每一次选择，都将影响最终的结局。你能否在这场充满谎言与真爱的战争中，找到属于你的幸福？"), 0.1f);
+}
+
+void UDemoMainMenu::HideAllPanel()
 {
 	LogoPanel->SetVisibility(ESlateVisibility::Hidden);
+	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
+	StoryPanel->SetVisibility(ESlateVisibility::Hidden);
+	HomePanel->SetVisibility(ESlateVisibility::Hidden);
+	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
 }
+
 void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 	UE_LOG(LogTemp, Display, TEXT("Response Complete"));
 	TArray<UVaRestJsonObject*> VaRestJsonObjects = Result->GetResponseObject()->GetObjectArrayField(TEXT("choices"));
@@ -112,10 +128,12 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
 		GEngine->AddOnScreenDebugMessage(1,2,FColor::Red,content);
+		CheckGameState();
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
+		CheckGameState();
 	}
 }
 void UDemoMainMenu::StartTypewriterEffect(const FString& TextToType, float Interval)
@@ -146,6 +164,46 @@ void UDemoMainMenu::TypeNextCharacter()
 	else
 	{
 		GetWorld()->GetTimerManager().ClearTimer(TypingTimerHandle);
-		StoryPanel->SetVisibility(ESlateVisibility::Hidden);
+		CheckGameState();
 	}
+}
+void UDemoMainMenu::RequestAIData()
+{
+	UVaRestSubsystem * VaRestSubsystem = GEngine->GetEngineSubsystem<UVaRestSubsystem>();
+	UVaRestRequestJSON * RequestJSON = VaRestSubsystem->ConstructVaRestRequestExt(EVaRestRequestVerb::POST,EVaRestRequestContentType::json);
+	UVaRestJsonObject* JsonObject = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject->SetStringField(TEXT("role"), TEXT("user"));
+	JsonObject->SetStringField(TEXT("content"), TEXT("Hello!"));
+	const TArray<UVaRestJsonObject*> JsonArray = {JsonObject};
+	UVaRestJsonObject* JsonObject2 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject2->SetStringField(TEXT("model"), TEXT("deepseek-chat"));
+	JsonObject2->SetObjectArrayField(TEXT("messages"),JsonArray);
+	RequestJSON->SetRequestObject(JsonObject2);
+	FString ApiKey;
+	const FString DefaultGamePath = FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir());
+	GConfig->GetString(TEXT("DeepSeek"), TEXT("ApiKey"), ApiKey, DefaultGamePath);
+	RequestJSON->SetHeader(TEXT("Authorization"), ApiKey);
+	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));
+	RequestJSON->OnRequestComplete.AddDynamic(this, &UDemoMainMenu::OnRequestComplete);
+	FLatentActionInfo LatentInfo = FLatentActionInfo();
+	RequestJSON->ApplyURL(TEXT("https://api.deepseek.com/chat/completions"),ResultObject,this,LatentInfo);
+}
+void UDemoMainMenu::CheckGameState()
+{
+	NewGameState++;
+	if (NewGameState == 2)
+	{
+		StoryPanel->SetVisibility(ESlateVisibility::Hidden);
+		HomePanel->SetVisibility(ESlateVisibility::Visible);
+		ShowPopup();
+	}
+}
+void UDemoMainMenu::ShowPopup()
+{
+	PopupPanel->SetVisibility(ESlateVisibility::Visible);
+}
+void UDemoMainMenu::ClosePopup()
+{
+	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
+	
 }
