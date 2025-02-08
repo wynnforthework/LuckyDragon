@@ -108,7 +108,7 @@ void UGameSubsystem::NewSave()
 			UItem* Item = NewObject<UItem>();
 			Item->ID = Row->ID;
 			PlayerItems.Add(Item);
-			if (CurrentSaveGame->PlayerBag.Num()>=10)
+			if (PlayerItems.Num()>=10)
 			{
 				break;
 			}
