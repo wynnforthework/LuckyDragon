@@ -45,17 +45,33 @@ public:
 	class UOverlay* PopupPanel;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
-	class UTextBlock* StoryText;
-		
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
-	class UUserWidget* PopupSureButton;
+	class UTextBlock* TextStory;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* TextAI;
 	
 	UVaRestJsonObject* ResultObject;
 
 	UFUNCTION()
 	void PlayEnterAnimation();
-	
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* NextDayWidget;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* PopupSureWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* TextDay;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* TextGold;
+		
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* TextLevel;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* GiftWidget;
 
 protected:
 	virtual void NativeConstruct() override;
@@ -97,4 +113,7 @@ private:
 	
 	UFUNCTION()
 	void ClosePopup();
+
+	UFUNCTION()
+	void NextDay();
 };

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Item.h"
+#include "MySaveGame.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameSubsystem.generated.h"
 
@@ -25,8 +26,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UMySaveGame> CurrentSaveGame;
 
-	TArray<UItem*> PlayerItems;
-	
 	UDataTable* DT_Gift;
 public:
 
@@ -47,4 +46,8 @@ public:
 	FOnSaveGameSignature OnSaveGameWritten;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+
+	TArray<UItem*> PlayerItems;
+	
+	FPlayerSaveData* PlayerData;
 };

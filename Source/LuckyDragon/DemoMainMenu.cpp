@@ -32,13 +32,16 @@ bool UDemoMainMenu::Initialize()
 	{
 		EndButton->OnClicked.AddDynamic(this, &UDemoMainMenu::QuitGame);
 	}
-	if (PopupSureButton)
+
+	UButton* SureButton = Cast<UButton>(PopupSureWidget->GetWidgetFromName(TEXT("Button")));
+	if (SureButton)
 	{
-		UButton* SureButtonWidget = Cast<UButton>(PopupSureButton->GetWidgetFromName(TEXT("Button")));
-		if (SureButtonWidget)
-		{
-			SureButtonWidget->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
-		}
+		SureButton->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
+	}
+	UButton* NextDayButton = Cast<UButton>(NextDayWidget->GetWidgetFromName(TEXT("Button")));
+	if (NextDayButton)
+	{
+		NextDayButton->OnClicked.AddDynamic(this,&UDemoMainMenu::NextDay);
 	}
 	HideAllPanel();
 	NewGameState = 0;
@@ -95,7 +98,7 @@ void UDemoMainMenu::PlayEnterAnimation()
 void UDemoMainMenu::PlayStory()
 {
 	StoryPanel->SetVisibility(ESlateVisibility::Visible);
-	StartTypewriterEffect(TEXT("在一年内，通过智慧和策略，找到那个真正爱你的人，避免被迫联姻的命运。每一次互动、每一次选择，都将影响最终的结局。你能否在这场充满谎言与真爱的战争中，找到属于你的幸福？"), 0.1f);
+	StartTypewriterEffect(TEXT("醒醒\n醒醒\n大龙集团法人龙爷：从今天开始，冻结你的所有银行卡，每天只给你10000元生活费，不让你吃点苦看来你是不会听话的。"), 0.1f);
 }
 
 void UDemoMainMenu::HideAllPanel()
@@ -117,6 +120,7 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
 		GEngine->AddOnScreenDebugMessage(1,2,FColor::Red,content);
+		TextAI->SetText(FText::FromString("创建完成"));
 		CheckGameState();
 	}
 	else
@@ -147,8 +151,7 @@ void UDemoMainMenu::TypeNextCharacter()
 	{
 		DisplayedText += FullText.Mid(CurrentCharacterIndex, 1);
 		CurrentCharacterIndex++;
-		// UE_LOG(LogTemp, Warning, TEXT("Display: %s"), *DisplayedText);
-		StoryText->SetText(FText::FromString(DisplayedText));
+		TextStory->SetText(FText::FromString(DisplayedText));
 	}
 	else
 	{
@@ -194,5 +197,21 @@ void UDemoMainMenu::ShowPopup()
 void UDemoMainMenu::ClosePopup()
 {
 	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
-	
+
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
+	PlayerData->Gold += 10000;
+	if (TextGold != nullptr)
+	{
+		TextGold->SetText(FText::FromString(LexToString(PlayerData->Gold)));
+	}
+	if (TextDay != nullptr)
+	{
+		TextDay->SetText(FText::FromString(LexToString(PlayerData->Day)));
+	}
+}
+void UDemoMainMenu::NextDay()
+{
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
+	PlayerData->Day += 1;
+	ShowPopup();
 }

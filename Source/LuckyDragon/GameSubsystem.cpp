@@ -40,6 +40,8 @@ void UGameSubsystem::WriteSaveGame()
 		CurrentSaveGame->PlayerBag.Add(BagItem);
 	}
 
+	CurrentSaveGame->PlayerData = *PlayerData;
+
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame,CurrentSlotName,0);
 	OnSaveGameWritten.Broadcast(CurrentSaveGame);
 }
@@ -69,7 +71,7 @@ void UGameSubsystem::LoadSaveGame()
 			Item->ID = BagItem.ID;
 			PlayerItems.Add(Item);
 		}
-		
+		PlayerData = &CurrentSaveGame->PlayerData;
 		OnSaveGameLoaded.Broadcast(CurrentSaveGame);
 	}
 	else
@@ -91,10 +93,11 @@ void UGameSubsystem::NewSave()
 {
 	CurrentSaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
 
-	CurrentSaveGame->PlayerData.PlayerName = TEXT("PlayerOne");
-	CurrentSaveGame->PlayerData.Level = 1;
-	CurrentSaveGame->PlayerData.Gold = 0;
-	CurrentSaveGame->PlayerData.Day = 1;
+	PlayerData->PlayerName = TEXT("PlayerOne");
+	PlayerData->Level = 1;
+	PlayerData->Gold = 0;
+	PlayerData->Day = 1;
+	CurrentSaveGame->PlayerData = *PlayerData;
 
 	PlayerItems.Empty();
 
@@ -102,7 +105,7 @@ void UGameSubsystem::NewSave()
 	{
 		TArray<FItemData*> Rows;
 		DT_Gift->GetAllRows(TEXT("RowName"),Rows);
-		for (int32 Index = 0;Index < Rows.Num();++Index)
+		for (int32 Index = 0;Index < Rows.Num();Index++)
 		{
 			FItemData* Row = Rows[Index];
 			UItem* Item = NewObject<UItem>();
