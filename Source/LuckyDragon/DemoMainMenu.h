@@ -73,6 +73,27 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
 	class UUserWidget* GiftWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+	class UOverlay* GachaPanel;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UTextBlock* GachaTextGold;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* GachaOneWidget;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* GachaTenWidget;
+		
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* GachaBackWidget;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUniformGridPanel* RandomGiftPanel;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUniformGridPanel* BagGiftPanel;
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual bool Initialize() override;
@@ -116,4 +137,12 @@ private:
 
 	UFUNCTION()
 	void NextDay();
+
+	UFUNCTION()
+	void OpenGacha();
+	
+	UFUNCTION()
+	void CloseGacha();
+
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 };

@@ -20,29 +20,22 @@ bool UDemoMainMenu::Initialize()
 {
 	Super::Initialize();
 
-	if (StartButton)
-	{
-		StartButton->OnClicked.AddDynamic(this, &UDemoMainMenu::StartGame);
-	}
-	if (ContinueButton)
-	{
-		ContinueButton->OnClicked.AddDynamic(this, &UDemoMainMenu::ContinueGame);
-	}
-	if (EndButton)
-	{
-		EndButton->OnClicked.AddDynamic(this, &UDemoMainMenu::QuitGame);
-	}
+	StartButton->OnClicked.AddDynamic(this, &UDemoMainMenu::StartGame);
+	ContinueButton->OnClicked.AddDynamic(this, &UDemoMainMenu::ContinueGame);
+	EndButton->OnClicked.AddDynamic(this, &UDemoMainMenu::QuitGame);
 
 	UButton* SureButton = Cast<UButton>(PopupSureWidget->GetWidgetFromName(TEXT("Button")));
-	if (SureButton)
-	{
-		SureButton->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
-	}
+	SureButton->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
+
 	UButton* NextDayButton = Cast<UButton>(NextDayWidget->GetWidgetFromName(TEXT("Button")));
-	if (NextDayButton)
-	{
-		NextDayButton->OnClicked.AddDynamic(this,&UDemoMainMenu::NextDay);
-	}
+	NextDayButton->OnClicked.AddDynamic(this,&UDemoMainMenu::NextDay);
+
+	UButton* GiftButton = Cast<UButton>(GiftWidget->GetWidgetFromName(TEXT("Button")));
+	GiftButton->OnClicked.AddDynamic(this,&UDemoMainMenu::OpenGacha);
+	
+	UButton* GachaBackButton = Cast<UButton>(GachaBackWidget->GetWidgetFromName(TEXT("ButtonIcon")));
+	GachaBackButton->OnClicked.AddDynamic(this,&UDemoMainMenu::CloseGacha);
+
 	HideAllPanel();
 	NewGameState = 0;
 	return true;
@@ -108,6 +101,7 @@ void UDemoMainMenu::HideAllPanel()
 	StoryPanel->SetVisibility(ESlateVisibility::Hidden);
 	HomePanel->SetVisibility(ESlateVisibility::Hidden);
 	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
+	GachaPanel->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
@@ -214,4 +208,21 @@ void UDemoMainMenu::NextDay()
 	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
 	PlayerData->Day += 1;
 	ShowPopup();
+}
+void UDemoMainMenu::OpenGacha()
+{
+	HomePanel->SetVisibility(ESlateVisibility::Hidden);
+	GachaPanel->SetVisibility(ESlateVisibility::Visible);
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
+	GachaTextGold->SetText(FText::FromString(LexToString(PlayerData->Gold)));
+}
+void UDemoMainMenu::CloseGacha()
+{
+	HomePanel->SetVisibility(ESlateVisibility::Visible);
+	GachaPanel->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UDemoMainMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
 }
