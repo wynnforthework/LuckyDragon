@@ -3,8 +3,49 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Item.h"
 #include "GameFramework/SaveGame.h"
 #include "MySaveGame.generated.h"
+
+USTRUCT()
+struct FPlayerSaveData
+{
+	GENERATED_BODY()
+
+public:
+	FPlayerSaveData()
+	{
+		
+	}
+
+	UPROPERTY()
+	FString PlayerName;
+
+	UPROPERTY()
+	int32 Level;
+
+	UPROPERTY()
+	int64 Gold;
+
+	UPROPERTY()
+	int32 Day;
+};
+
+USTRUCT()
+struct FBagItem
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	int32 Amount;
+
+	UPROPERTY()
+	int32 ID;
+
+	UPROPERTY()
+	TArray<uint8> ByteData;
+};
 
 /**
  * 
@@ -15,32 +56,11 @@ class LUCKYDRAGON_API UMySaveGame : public USaveGame
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	FString PlayerName;
+	UPROPERTY()
+	TArray<FBagItem> PlayerBag;
 
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	FString SaveSlotName;
+	UPROPERTY()
+	FPlayerSaveData PlayerData;
 
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	uint32 UserIndex;
-
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	uint32 UserLevel;
-	
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	uint64 UserGold;
-
-	UPROPERTY(VisibleAnywhere, Category = "Basic")
-	uint64 GameDay;
-
-	UMySaveGame();
-
-	void AsyncSave();
-	void Save();
-	void AsyncLoad();
-	void Load();
-
-private:
-	void ProcessSaveComplete(const FString& SlotName, const int32 Index, bool bSuccess);
-	void ProcessLoadComplete(const FString& SlotName, const int32 Index,USaveGame* LoadedGameData);
+	void UpdateAmount(const int32& id,const int32& Magnitude);
 };

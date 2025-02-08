@@ -3,6 +3,7 @@
 
 #include "DemoMainMenu.h"
 
+#include "GameSubsystem.h"
 #include "MySaveGame.h"
 #include "Components/Button.h"
 #include "Components/Overlay.h"
@@ -33,17 +34,6 @@ bool UDemoMainMenu::Initialize()
 	}
 	if (PopupSureButton)
 	{
-		// FProperty* SureButton = PopupSureButton->GetClass()->FindPropertyByName(TEXT("Button"));
-		// FObjectProperty* ButtonProperty = CastField<FObjectProperty>(SureButton);
-		// if (ButtonProperty && ButtonProperty->PropertyClass == UButton::StaticClass())
-		// {
-		// 	UButton* SureButtonWidget = Cast<UButton>(ButtonProperty->GetPropertyValue_InContainer(PopupSureButton));
-		// 	if (SureButtonWidget)
-		// 	{
-		// 		SureButtonWidget->OnClicked.AddDynamic(this,&UDemoMainMenu::ClosePopup);
-		// 	}
-		// }
-
 		UButton* SureButtonWidget = Cast<UButton>(PopupSureButton->GetWidgetFromName(TEXT("Button")));
 		if (SureButtonWidget)
 		{
@@ -59,8 +49,7 @@ void UDemoMainMenu::StartGame()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
 
-	UMySaveGame* MySaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
-	MySaveGame->Save();
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->NewSave();
 
 	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
 	PlayStory();

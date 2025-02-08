@@ -4,12 +4,11 @@
 #include "GameActor.h"
 
 #include "DemoMainMenu.h"
-#include "MySaveGame.h"
+#include "GameSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
-#include "Components/Overlay.h"
 
 void AGameActor::BeginPlay()
 {
@@ -22,16 +21,7 @@ void AGameActor::BeginPlay()
 	check(PlayerController);
 	PlayerController->SetShowMouseCursor(true);
 
-	bool IsSavedExist = UGameplayStatics::DoesSaveGameExist("TestSaveSlot",0);
-	if (IsSavedExist)
-	{
-		MySaveGame = Cast<UMySaveGame>(UGameplayStatics::LoadGameFromSlot("TestSaveSlot",0));
-	}
-	else
-	{
-		MySaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
-		MySaveGame->Save();
-	}
+	bool IsSavedExist = GetGameInstance()->GetSubsystem<UGameSubsystem>()->HasSaveData();
 
 	if (UIMainMenu)
 	{
