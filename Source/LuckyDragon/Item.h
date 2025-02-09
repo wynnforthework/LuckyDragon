@@ -9,17 +9,16 @@
 USTRUCT(BlueprintType)
 struct FItemData : public FTableRowBase
 {
-	GENERATED_BODY()
-	FItemData() {}
+	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int ID = 0;
+	int ID;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName ItemName = FName();
+	FName ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Price = 0;
+	int Price;
 };
 
 /**

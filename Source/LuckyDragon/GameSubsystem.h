@@ -20,6 +20,10 @@ class LUCKYDRAGON_API UGameSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
+	UGameSubsystem();
+private:
+	FPlayerSaveData PlayerData;
+
 protected:
 	FString CurrentSlotName;
 
@@ -48,7 +52,11 @@ public:
 
 	TArray<UItem*> PlayerItems;
 	
-	FPlayerSaveData* PlayerData;
-
 	UDataTable* DT_Gift;
+		
+	bool UpdateAmount(const int32& id,const int32& Magnitude);
+	void UpdateGold(const int32& Magnitude);
+	void UpdateDay();
+	void UpdateLevel(const uint32& Magnitude);
+	FPlayerSaveData GetPlayerData();
 };

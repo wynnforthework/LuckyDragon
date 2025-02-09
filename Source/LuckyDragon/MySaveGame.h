@@ -15,7 +15,11 @@ struct FPlayerSaveData
 public:
 	FPlayerSaveData()
 	{
-		
+		PlayerName = TEXT("PlayerOne");
+		Level = 1;
+		Gold = 0;
+		Day = 1;
+		Exp = 0;
 	}
 
 	UPROPERTY()
@@ -29,6 +33,9 @@ public:
 
 	UPROPERTY()
 	int32 Day;
+	
+	UPROPERTY()
+	int32 Exp;
 };
 
 USTRUCT()
@@ -58,9 +65,8 @@ class LUCKYDRAGON_API UMySaveGame : public USaveGame
 public:
 	UPROPERTY()
 	TArray<FBagItem> PlayerBag;
-
+	
 	UPROPERTY()
 	FPlayerSaveData PlayerData;
 
-	void UpdateAmount(const int32& id,const int32& Magnitude);
 };

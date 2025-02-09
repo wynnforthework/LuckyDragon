@@ -3,6 +3,7 @@
 
 #include "DemoMainMenu.h"
 
+#include "CrashSightAgent.h"
 #include "GameSubsystem.h"
 #include "MySaveGame.h"
 #include "Components/Button.h"
@@ -56,6 +57,20 @@ void UDemoMainMenu::StartGame()
 
 void UDemoMainMenu::ContinueGame()
 {
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->LoadSaveGame();
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+	if (TextGold != nullptr)
+	{
+		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+	}
+	if (TextDay != nullptr)
+	{
+		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
+	}
+	if (TextLevel != nullptr)
+	{
+		TextLevel->SetText(FText::FromString(LexToString(PlayerData.Level)));
+	}
 	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
 	HomePanel->SetVisibility(ESlateVisibility::Visible);
 }
@@ -116,7 +131,7 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
 		GEngine->AddOnScreenDebugMessage(1,2,FColor::Red,content);
-		TextAI->SetText(FText::FromString("创建完成"));
+		TextAI->SetText(FText::FromString(TEXT("创建完成")));
 		CheckGameState();
 	}
 	else
@@ -194,29 +209,29 @@ void UDemoMainMenu::ClosePopup()
 {
 	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
 
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
-	PlayerData->Gold += 10000;
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateGold(10000);
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->WriteSaveGame();
 	if (TextGold != nullptr)
 	{
-		TextGold->SetText(FText::FromString(LexToString(PlayerData->Gold)));
+		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
 	}
 	if (TextDay != nullptr)
 	{
-		TextDay->SetText(FText::FromString(LexToString(PlayerData->Day)));
+		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
 	}
 }
 void UDemoMainMenu::NextDay()
 {
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
-	PlayerData->Day += 1;
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateDay();
 	ShowPopup();
 }
 void UDemoMainMenu::OpenGacha()
 {
 	HomePanel->SetVisibility(ESlateVisibility::Hidden);
 	GachaPanel->SetVisibility(ESlateVisibility::Visible);
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
-	GachaTextGold->SetText(FText::FromString(LexToString(PlayerData->Gold)));
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+	GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
 	RandomGiftState = 0;
 	GachaPanelShowTime = 0;
 	RandomGiftTexts.Empty();
@@ -245,13 +260,16 @@ void UDemoMainMenu::OpenGacha()
 		TextBlockGroups[i % 3].Add(ShuffledTextBlocks[i]);
 	}
 
-	TArray<FItemData*> Rows;
-	GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetAllRows(TEXT("RowName"),Rows);
-	for (int32 Index = 0;Index < Rows.Num();Index++)
+	if (GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift)
 	{
-		FItemData* Row = Rows[Index];
-		AllGiftNames.Add(Row->ItemName);
+		for (auto iter : GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap())
+		{
+			// FName RowName = iter.Key;
+			FItemData* Row = (FItemData*)iter.Value;
+			AllGiftNames.Add(Row->ItemName);
+		}
 	}
+
 	// 打乱FName的顺序
 	for (int32 i = AllGiftNames.Num() - 1; i > 0; --i)
 	{
@@ -271,8 +289,6 @@ void UDemoMainMenu::CloseGacha()
 void UDemoMainMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-
-	UE_LOG(LogTemp, Error, TEXT("Tick %f"),InDeltaTime);
 
 	if (RandomGiftState>0)
 	{
