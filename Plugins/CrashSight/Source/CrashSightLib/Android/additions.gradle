@@ -1,0 +1,15 @@
+dependencies {
+	compile fileTree(dir: 'libs', exclude: ['android-support-v4.jar'], include: ['*.jar'])
+	compile rootProject.ext.commonDependencies["support-v4"]
+}
+android{
+	sourceSets{
+        main {
+            jniLibs.srcDirs 'libs'
+        }
+    }
+    packageBuildConfig false
+	packagingOptions {
+		exclude '**/BuildConfig.class'
+	}
+}

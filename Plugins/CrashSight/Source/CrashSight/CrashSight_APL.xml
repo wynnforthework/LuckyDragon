@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- init section is always evaluated once per architecture -->
+
+
+  <androidManifestUpdates>
+
+
+  </androidManifestUpdates>
+
+
+    <resourceCopies>
+        <!-- copy src -->
+        <copyDir src="$S(PluginDir)/../CrashSightLib/Android/libs/" dst="$S(BuildDir)/libs/" />
+		<copyDir src="$S(PluginDir)/../CrashSightLib/Android/assets/" dst="$S(BuildDir)/assets" />
+        <copyDir src="$S(PluginDir)/../CrashSightLib/Android/libs/$S(Architecture)/" dst="$S(BuildDir)/libs/$S(Architecture)/" />
+    </resourceCopies>
+  
+
+  <gameActivityImportAdditions>
+    <insert>
+      import com.uqm.crashsight.core.api.CrashSightPlatform;
+    </insert>
+  </gameActivityImportAdditions>
+
+  <!--GameActivity.java onCreate添加代码 -->
+  <gameActivityOnCreateAdditions>
+    <insert>
+      CrashSightPlatform.loadCrashSightCoreSo();
+    </insert>
+  </gameActivityOnCreateAdditions>
+
+  <androidManifestUpdates>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  </androidManifestUpdates>
+
+  <proguardAdditions>
+    <insert>
+      # crashsight sdk
+      -keep public class com.uqm.crashsight.** { *; }
+      -dontwarn com.uqm.crashsight.core.**
+      -keep class com.uqm.crashsight.core.** { *; }
+    </insert>
+  </proguardAdditions>
+</root>
