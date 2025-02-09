@@ -7,7 +7,9 @@
 #include "MySaveGame.h"
 #include "Components/Button.h"
 #include "Components/Overlay.h"
+#include "Components/SizeBox.h"
 #include "Components/TextBlock.h"
+#include "Components/UniformGridPanel.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -215,14 +217,124 @@ void UDemoMainMenu::OpenGacha()
 	GachaPanel->SetVisibility(ESlateVisibility::Visible);
 	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerData;
 	GachaTextGold->SetText(FText::FromString(LexToString(PlayerData->Gold)));
+	RandomGiftState = 0;
+	GachaPanelShowTime = 0;
+	RandomGiftTexts.Empty();
+	AllGiftNames.Empty();
+	CurrentGroupIndex = 0;
+	CurrentGiftNameIndex = 0;
+	IsFirstCircle = true;
+	for (UWidget* Widget : RandomGiftPanel->GetAllChildren())
+	{
+		USizeBox* SizeBox = Cast<USizeBox>(Widget);
+		UTextBlock* TextBlock = Cast<UTextBlock>(SizeBox->GetChildAt(0));
+        TextBlock->SetOpacity(0);
+		RandomGiftTexts.Add(TextBlock);
+	}
+	// 将TextBlock随机分成3组
+	TextBlockGroups.SetNum(3);
+	TArray<UTextBlock*> ShuffledTextBlocks = RandomGiftTexts;
+	for (int32 i = ShuffledTextBlocks.Num() - 1; i > 0; --i)
+	{
+		int32 j = FMath::Rand() % (i + 1);
+		ShuffledTextBlocks.Swap(i, j);
+	}
+
+	for (int32 i = 0; i < ShuffledTextBlocks.Num(); ++i)
+	{
+		TextBlockGroups[i % 3].Add(ShuffledTextBlocks[i]);
+	}
+
+	TArray<FItemData*> Rows;
+	GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetAllRows(TEXT("RowName"),Rows);
+	for (int32 Index = 0;Index < Rows.Num();Index++)
+	{
+		FItemData* Row = Rows[Index];
+		AllGiftNames.Add(Row->ItemName);
+	}
+	// 打乱FName的顺序
+	for (int32 i = AllGiftNames.Num() - 1; i > 0; --i)
+	{
+		int32 j = FMath::Rand() % (i + 1);
+		AllGiftNames.Swap(i, j);
+	}
+	RandomGiftState = 1;
+
 }
 void UDemoMainMenu::CloseGacha()
 {
 	HomePanel->SetVisibility(ESlateVisibility::Visible);
 	GachaPanel->SetVisibility(ESlateVisibility::Hidden);
+	RandomGiftState = 0;
 }
 
 void UDemoMainMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	UE_LOG(LogTemp, Error, TEXT("Tick %f"),InDeltaTime);
+
+	if (RandomGiftState>0)
+	{
+		if (RandomGiftState == 1)
+		{
+			if (GachaPanelShowTime == 0)
+			{
+				for (UTextBlock* TextBlock : TextBlockGroups[CurrentGroupIndex])
+				{
+					// 从FNames中获取下一个FName
+					FName NextFName = AllGiftNames[CurrentGiftNameIndex];
+					CurrentGiftNameIndex = (CurrentGiftNameIndex + 1) % AllGiftNames.Num();
+
+					// 设置TextBlock的文本
+					TextBlock->SetText(FText::FromName(NextFName));
+
+					TextBlock->SetOpacity(1);
+				}
+			}
+			GachaPanelShowTime += InDeltaTime;
+			if (GachaPanelShowTime>=1.0f)
+			{
+				GachaPanelShowTime = 0;
+				CurrentGroupIndex++;
+				if (CurrentGroupIndex>=3)
+				{
+					IsFirstCircle = false;
+					CurrentGroupIndex = 0;
+				}
+			}
+			for(int32 Index = 0;Index<TextBlockGroups.Num();Index++)
+			{
+				for (UTextBlock* TextBlock : TextBlockGroups[Index])
+				{
+					// 设置TextBlock的透明度
+					if (Index == CurrentGroupIndex)
+					{
+						if (GachaPanelShowTime == 0)
+						{
+							TextBlock->SetOpacity(1);
+
+						}
+						else
+						{
+							TextBlock->SetOpacity(GachaPanelShowTime);
+						}
+					}
+					else
+					{
+						if (!IsFirstCircle)
+						{
+							// TextBlock->SetOpacity(1 - GachaPanelShowTime);
+						}
+					}
+				}
+
+			}
+		}
+		else if (RandomGiftState == 2)
+		{
+			
+		}
+		
+	}
 }

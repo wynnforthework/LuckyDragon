@@ -145,4 +145,15 @@ private:
 	void CloseGacha();
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+
+	int RandomGiftState;
+
+	float GachaPanelShowTime;
+
+	TArray<UTextBlock*> RandomGiftTexts;
+	TArray<FName> AllGiftNames;
+	TArray<TArray<UTextBlock*>> TextBlockGroups; // 分组的TextBlock
+	int32 CurrentGiftNameIndex;
+	int32 CurrentGroupIndex; // 当前显示的组索引
+	bool IsFirstCircle;
 };

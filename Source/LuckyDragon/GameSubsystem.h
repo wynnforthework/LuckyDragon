@@ -26,7 +26,6 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UMySaveGame> CurrentSaveGame;
 
-	UDataTable* DT_Gift;
 public:
 
 	UFUNCTION(BlueprintCallable, Category = "SaveGame")
@@ -50,4 +49,6 @@ public:
 	TArray<UItem*> PlayerItems;
 	
 	FPlayerSaveData* PlayerData;
+
+	UDataTable* DT_Gift;
 };
