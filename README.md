@@ -3,6 +3,10 @@
 
 ### 接入DeepSeek
 api是从文件中读取的，需要自己建立Conifg/DeepSeek.ini文件
+
+### 接入Google Sheet
+使用云文档来配置数据，本地使用编辑器工具来下载云文档并将数据更新到UDataTable中
+
  ```
 [DeepSeek]
 ApiKey=Bearer sk-xxx
