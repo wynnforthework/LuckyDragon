@@ -96,6 +96,7 @@ public:
 
 protected:
 	virtual void NativeConstruct() override;
+
 	virtual bool Initialize() override;
 	// 打字机效果
 	FString FullText;
@@ -156,4 +157,19 @@ private:
 	int32 CurrentGiftNameIndex;
 	int32 CurrentGroupIndex; // 当前显示的组索引
 	bool IsFirstCircle;
+
+	UFUNCTION()
+	void GachaOne();
+	
+	UFUNCTION()
+	void GachaTen();
+
+	float GachaAnimationDuration;
+	float GachaAnimationTime;
+	int8 GachaResultCount;
+
+	void LoadBag();
+	void UpdateBag();
+
+	TSubclassOf<class UUserWidget> inventoryWidgetClass;
 };

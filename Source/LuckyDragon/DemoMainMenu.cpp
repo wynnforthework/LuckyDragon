@@ -13,15 +13,21 @@
 #include "Components/UniformGridPanel.h"
 #include "Kismet/GameplayStatics.h"
 
-
 void UDemoMainMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+
+
 }
 
 bool UDemoMainMenu::Initialize()
 {
 	Super::Initialize();
+	if (GetWorld()==nullptr || !GetWorld()->IsPlayInEditor())
+	{
+		return false;
+	}
 
 	StartButton->OnClicked.AddDynamic(this, &UDemoMainMenu::StartGame);
 	ContinueButton->OnClicked.AddDynamic(this, &UDemoMainMenu::ContinueGame);
@@ -39,7 +45,19 @@ bool UDemoMainMenu::Initialize()
 	UButton* GachaBackButton = Cast<UButton>(GachaBackWidget->GetWidgetFromName(TEXT("ButtonIcon")));
 	GachaBackButton->OnClicked.AddDynamic(this,&UDemoMainMenu::CloseGacha);
 
+	UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
+	if (GachaOneButton != nullptr)
+	{
+		GachaOneButton->OnClicked.AddDynamic(this,&UDemoMainMenu::GachaOne);
+	}
+	UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
+	if (GachaTenButton != nullptr)
+	{
+		GachaTenButton->OnClicked.AddDynamic(this,&UDemoMainMenu::GachaTen);
+	}
+	inventoryWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/ultimate_dark_gui/widgets/templates/item/w_inventory_gift_slot_template.w_inventory_gift_slot_template_C"));
 	HideAllPanel();
+	LoadBag();
 	NewGameState = 0;
 	return true;
 }
@@ -130,7 +148,7 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString role = VaRestJsonObject->GetStringField(TEXT("role"));
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
-		GEngine->AddOnScreenDebugMessage(1,2,FColor::Red,content);
+		GEngine->AddOnScreenDebugMessage(-1,2,FColor::Red,content);
 		TextAI->SetText(FText::FromString(TEXT("创建完成")));
 		CheckGameState();
 	}
@@ -239,6 +257,8 @@ void UDemoMainMenu::OpenGacha()
 	CurrentGroupIndex = 0;
 	CurrentGiftNameIndex = 0;
 	IsFirstCircle = true;
+	GachaAnimationDuration = 0;
+	GachaAnimationTime = 0;
 	for (UWidget* Widget : RandomGiftPanel->GetAllChildren())
 	{
 		USizeBox* SizeBox = Cast<USizeBox>(Widget);
@@ -277,7 +297,7 @@ void UDemoMainMenu::OpenGacha()
 		AllGiftNames.Swap(i, j);
 	}
 	RandomGiftState = 1;
-
+	UpdateBag();
 }
 void UDemoMainMenu::CloseGacha()
 {
@@ -349,8 +369,208 @@ void UDemoMainMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		}
 		else if (RandomGiftState == 2)
 		{
-			
+			if (GachaAnimationDuration == 0)
+			{
+				GachaAnimationDuration = 0.5f;
+				GachaAnimationTime = 0.0f;
+				for (UTextBlock* TextBlock : TextBlockGroups[CurrentGroupIndex])
+				{
+					TextBlock->SetOpacity(1);
+				}
+			}
+			else
+			{
+				GachaAnimationTime += InDeltaTime;
+
+				if (GachaAnimationTime>GachaAnimationDuration)
+				{
+					GachaAnimationDuration += 0.3f;
+					GachaAnimationTime = 0.0f;
+					if (GachaAnimationDuration>=2.0f)
+					{
+						FString _result_name = "";
+						int8 _result_count = 0;
+						for(int32 Index = 0;Index<TextBlockGroups.Num();Index++)
+						{
+							for (UTextBlock* TextBlock : TextBlockGroups[Index])
+							{
+								// 从FNames中获取下一个FName
+								FName NextFName = AllGiftNames[CurrentGiftNameIndex];
+								CurrentGiftNameIndex = (CurrentGiftNameIndex + 1) % AllGiftNames.Num();
+
+								// 设置TextBlock的文本
+								TextBlock->SetText(FText::FromName(NextFName));
+							
+								_result_count++;
+								if (_result_count<=GachaResultCount)
+								{
+									TextBlock->SetOpacity(1);
+									_result_name.Append(TEXT("【"));
+									_result_name.Append(NextFName.ToString());
+									_result_name.Append(TEXT("】"));
+									for (auto iter : GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap())
+									{
+										// FName RowName = iter.Key;
+										FItemData* Row = (FItemData*)iter.Value;
+										if (Row->ItemName == NextFName)
+										{
+											GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateAmount(Row->ID,1);
+										}
+									}
+								}
+								else
+								{
+									TextBlock->SetOpacity(0);
+								}
+							}
+						}
+						GEngine->AddOnScreenDebugMessage(-1,10,FColor::Red,_result_name);
+						UE_LOG(LogTemp, Display, TEXT("恭喜抽中：%s"),*_result_name);
+						UpdateBag();
+						UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
+						GachaOneButton->SetIsEnabled(false);
+						UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
+						GachaTenButton->SetIsEnabled(false);
+						GetGameInstance()->GetSubsystem<UGameSubsystem>()->WriteSaveGame();
+						RandomGiftState = 0;
+					}
+					else
+					{
+						for(int32 Index = 0;Index<TextBlockGroups.Num();Index++)
+						{
+							for (UTextBlock* TextBlock : TextBlockGroups[Index])
+							{
+								// 从FNames中获取下一个FName
+								FName NextFName = AllGiftNames[CurrentGiftNameIndex];
+								CurrentGiftNameIndex = (CurrentGiftNameIndex + 1) % AllGiftNames.Num();
+
+								// 设置TextBlock的文本
+								TextBlock->SetText(FText::FromName(NextFName));
+
+								TextBlock->SetOpacity(1);
+							}
+						}
+					}
+				}
+				else
+				{
+					float _alpha = 1-FMath::Clamp(GachaAnimationTime / GachaAnimationDuration, 0.0f, 1.0f);
+					for(int32 Index = 0;Index<TextBlockGroups.Num();Index++)
+					{
+						for (UTextBlock* TextBlock : TextBlockGroups[Index])
+						{
+							TextBlock->SetOpacity(_alpha);
+						}
+					}
+				}
+			}
 		}
-		
+	}
+}
+
+void UDemoMainMenu::GachaOne()
+{
+	if (GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateGold(-1000))
+	{
+		RandomGiftState = 2;
+		GachaResultCount = 1;
+		GachaAnimationDuration = 0;
+		GachaAnimationTime = 0;
+		auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
+		GachaOneButton->SetIsEnabled(false);
+		UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
+		GachaTenButton->SetIsEnabled(false);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3,FColor::Red,TEXT("财富不足"));
+		FText MsgTitle = FText::FromString(TEXT("Warning"));
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("财富不足")), &MsgTitle);
+	}
+}
+
+void UDemoMainMenu::GachaTen()
+{
+	if (GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateGold(-10000))
+	{
+		RandomGiftState = 2;
+		GachaResultCount = 10;
+		GachaAnimationDuration = 0;
+		GachaAnimationTime = 0;
+		auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
+		GachaOneButton->SetIsEnabled(false);
+		UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
+		GachaTenButton->SetIsEnabled(false);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,3,FColor::Red,TEXT("财富不足"));
+		FText MsgTitle = FText::FromString(TEXT("Warning"));
+ 
+		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("财富不足")), &MsgTitle);
+	}
+}
+
+void UDemoMainMenu::LoadBag()
+{
+	if (BagGiftPanel && inventoryWidgetClass!=nullptr)
+	{
+		BagGiftPanel->ClearChildren();
+		auto MaxCol = ceil(GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap().Num()/3);
+		for (int32 i=0;i<3;i++)
+		{
+			for (int32 j=0;j<MaxCol;j++)
+			{
+				auto GiftSlot = CreateWidget<UUserWidget>(this, inventoryWidgetClass);
+				if (GiftSlot!=nullptr)
+				{
+					GiftSlot->SetDesiredSizeInViewport(FVector2D(160.0f,160.0f));
+					BagGiftPanel->AddChildToUniformGrid(GiftSlot,i,j);
+				}
+			}
+		}
+	}
+}
+
+void UDemoMainMenu::UpdateBag()
+{
+	int32 Index = 0;
+	for (auto iter : GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap())
+	{
+		FItemData* ItemData = (FItemData*)iter.Value;
+		FString _name = ItemData->ItemName.ToString();
+		UE_LOG(LogTemp, Display, TEXT("%s"),*_name);
+		UUserWidget* GiftSlot = Cast<UUserWidget>(BagGiftPanel->GetChildAt(Index++));
+		if (GiftSlot)
+		{
+			UWidget* SlotLocked = GiftSlot->GetWidgetFromName(TEXT("SlotLocked"));
+			UTextBlock* ItemName = Cast<UTextBlock>(GiftSlot->GetWidgetFromName(TEXT("ItemName")));
+			UTextBlock* Count = Cast<UTextBlock>(GiftSlot->GetWidgetFromName(TEXT("Count")));
+			ItemName->SetText(FText::FromName(ItemData->ItemName));
+			Count->SetText(FText::FromString(FString::FromInt(0)));
+			SlotLocked->SetVisibility(ESlateVisibility::Visible);
+			for (UItem* PlayerItem : GetGameInstance()->GetSubsystem<UGameSubsystem>()->PlayerItems)
+			{
+				if (PlayerItem->ID == ItemData->ID)
+				{
+					Count->SetText(FText::FromString(FString::FromInt(PlayerItem->Amount)));
+					if (PlayerItem->Amount>0)
+					{
+						SlotLocked->SetVisibility(ESlateVisibility::Hidden);
+					}
+					break;
+				}
+			}
+		}
+		else
+		{
+			break;
+		}
 	}
 }
