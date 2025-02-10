@@ -36,7 +36,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int ID = 0;
-
-	UFUNCTION(BlueprintCallable,Category = "Item Info")
-	void UpdateAmount(const int32& Magnitude);
 };

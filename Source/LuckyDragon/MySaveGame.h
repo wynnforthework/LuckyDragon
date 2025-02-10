@@ -10,9 +10,8 @@
 USTRUCT()
 struct FPlayerSaveData
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-public:
 	FPlayerSaveData()
 	{
 		PlayerName = TEXT("PlayerOne");
@@ -41,14 +40,7 @@ public:
 USTRUCT()
 struct FBagItem
 {
-	GENERATED_BODY()
-
-public:
-	UPROPERTY()
-	int32 Amount;
-
-	UPROPERTY()
-	int32 ID;
+	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
 	TArray<uint8> ByteData;

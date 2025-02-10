@@ -41,12 +41,10 @@ void UGameSubsystem::WriteSaveGame()
 	{
 		UItem* Item = PlayerItems[Index];
 		FBagItem BagItem = FBagItem();
-		BagItem.ID = Item->ID;
-		BagItem.Amount = Item->Amount;
-
 		FMemoryWriter MemWriter(BagItem.ByteData);
-		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
-		Ar.ArIsSaveGame = true;
+		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
+		Ar.ArIsSaveGame = false;
+		Ar.ArNoDelta = true;
 		Item->Serialize(Ar);
 
 		CurrentSaveGame->PlayerBag.Add(BagItem);
@@ -77,11 +75,11 @@ void UGameSubsystem::LoadSaveGame()
 		{
 			FBagItem BagItem = CurrentSaveGame->PlayerBag[Index];
 			FMemoryReader MemReader(BagItem.ByteData);
-			FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
-			Ar.ArIsSaveGame = true;
+			FObjectAndNameAsStringProxyArchive Ar(MemReader, false);
+			Ar.ArIsSaveGame = false;
+			Ar.ArNoDelta = true;
 			UItem* Item = NewObject<UItem>();
-			Item->Amount = BagItem.Amount;
-			Item->ID = BagItem.ID;
+			Item->Serialize(Ar);
 			PlayerItems.Add(Item);
 		}
 		PlayerData = CurrentSaveGame->PlayerData;
@@ -183,9 +181,20 @@ bool UGameSubsystem::UpdateAmount(const int32& id, const int32& Magnitude)
 	return FindItemAndCanUpdateAmount;
 }
 
-void UGameSubsystem::UpdateGold(const int32& Magnitude)
+bool UGameSubsystem::UpdateGold(const int32& Magnitude)
 {
-	PlayerData.Gold = FMath::Clamp(PlayerData.Gold + Magnitude, 0, INT32_MAX);
+	bool CanUpdateGold = true;
+	auto NewGold = PlayerData.Gold + Magnitude;
+	if (NewGold < 0)
+	{
+		CanUpdateGold = false;
+	}
+	else
+	{
+		PlayerData.Gold = FMath::Clamp(NewGold, 0,INT32_MAX);
+	}
+
+	return CanUpdateGold;
 }
 
 void UGameSubsystem::UpdateDay()

@@ -55,7 +55,7 @@ public:
 	UDataTable* DT_Gift;
 		
 	bool UpdateAmount(const int32& id,const int32& Magnitude);
-	void UpdateGold(const int32& Magnitude);
+	bool UpdateGold(const int32& Magnitude);
 	void UpdateDay();
 	void UpdateLevel(const uint32& Magnitude);
 	FPlayerSaveData GetPlayerData();
