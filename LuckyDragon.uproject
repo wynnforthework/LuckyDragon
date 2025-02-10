@@ -12,7 +12,8 @@
 				"UMG",
 				"Engine",
 				"CoreUObject",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"Blutility"
 			]
 		}
 	],
