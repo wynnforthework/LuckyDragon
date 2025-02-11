@@ -12,16 +12,15 @@
 #include "Components/UniformGridPanel.h"
 #include "Kismet/GameplayStatics.h"
 
-void UDemoMainMenu::NativeConstruct()
-{
-	Super::NativeConstruct();
-}
 
 bool UDemoMainMenu::Initialize()
 {
-	Super::Initialize();
+	return Super::Initialize();
+}
 
-
+void UDemoMainMenu::NativeConstruct()
+{
+	Super::NativeConstruct();
 	StartButton->OnClicked.AddDynamic(this, &UDemoMainMenu::StartGame);
 	ContinueButton->OnClicked.AddDynamic(this, &UDemoMainMenu::ContinueGame);
 	EndButton->OnClicked.AddDynamic(this, &UDemoMainMenu::QuitGame);
@@ -48,11 +47,10 @@ bool UDemoMainMenu::Initialize()
 	{
 		GachaTenButton->OnClicked.AddDynamic(this,&UDemoMainMenu::GachaTen);
 	}
-	inventoryWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/ultimate_dark_gui/widgets/templates/item/w_inventory_gift_slot_template.w_inventory_gift_slot_template_C"));
+	inventoryWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Widgets/w_inventory_gift_slot_template.w_inventory_gift_slot_template_C"));
 	HideAllPanel();
 	LoadBag();
 	NewGameState = 0;
-	return true;
 }
 
 void UDemoMainMenu::StartGame()
@@ -60,7 +58,7 @@ void UDemoMainMenu::StartGame()
 	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
 
 	GetGameInstance()->GetSubsystem<UGameSubsystem>()->NewSave();
-
+	RefreshUI();
 	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
 	PlayStory();
 	RequestAIData();
@@ -69,19 +67,7 @@ void UDemoMainMenu::StartGame()
 void UDemoMainMenu::ContinueGame()
 {
 	GetGameInstance()->GetSubsystem<UGameSubsystem>()->LoadSaveGame();
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
-	if (TextGold != nullptr)
-	{
-		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
-	}
-	if (TextDay != nullptr)
-	{
-		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
-	}
-	if (TextLevel != nullptr)
-	{
-		TextLevel->SetText(FText::FromString(LexToString(PlayerData.Level)));
-	}
+	RefreshUI();
 	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
 	HomePanel->SetVisibility(ESlateVisibility::Visible);
 }
@@ -119,7 +105,7 @@ void UDemoMainMenu::PlayEnterAnimation()
 void UDemoMainMenu::PlayStory()
 {
 	StoryPanel->SetVisibility(ESlateVisibility::Visible);
-	StartTypewriterEffect(TEXT("醒醒          \n醒醒          \n龙泡泡：爸，一天只有一万块钱生活费，你让我怎么活啊。          \n大龙跨国集团董事长龙王：以前太惯着你了，不让你吃点苦看来你是不会听话的，好好反省！。"), 0.1f);
+	StartTypewriterEffect(TEXT("醒醒          \n醒醒          \n龙泡泡：爸，一天只有一万块钱生活费，你让我怎么活啊。          \n大龙跨国集团董事长龙王：以前太惯着你了，不让你吃点苦看来你是不会听话的，好好反省！"), 0.1f);
 }
 
 void UDemoMainMenu::HideAllPanel()
@@ -254,20 +240,8 @@ void UDemoMainMenu::ClosePopup()
 	}
 
 	GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateGold(10000);
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
 	GetGameInstance()->GetSubsystem<UGameSubsystem>()->WriteSaveGame();
-	if (TextGold != nullptr)
-	{
-		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
-	}
-	if (TextDay != nullptr)
-	{
-		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
-	}
-	if (TextLevel != nullptr)
-	{
-		TextLevel->SetText(FText::FromString(LexToString(PlayerData.Level)));
-	}
+	RefreshUI();
 }
 void UDemoMainMenu::NextDay()
 {
@@ -278,8 +252,7 @@ void UDemoMainMenu::OpenGacha()
 {
 	HomePanel->SetVisibility(ESlateVisibility::Hidden);
 	GachaPanel->SetVisibility(ESlateVisibility::Visible);
-	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
-	GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+	RefreshUI();
 	RandomGiftState = 0;
 	GachaPanelShowTime = 0;
 	RandomGiftTexts.Empty();
@@ -506,9 +479,7 @@ void UDemoMainMenu::GachaOne()
 		GachaResultCount = 1;
 		GachaAnimationDuration = 0;
 		GachaAnimationTime = 0;
-		auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
-		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
-		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		RefreshUI();
 		UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
 		GachaOneButton->SetIsEnabled(false);
 		UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
@@ -530,9 +501,7 @@ void UDemoMainMenu::GachaTen()
 		GachaResultCount = 10;
 		GachaAnimationDuration = 0;
 		GachaAnimationTime = 0;
-		auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
-		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
-		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+		RefreshUI();
 		UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
 		GachaOneButton->SetIsEnabled(false);
 		UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
@@ -612,5 +581,26 @@ void UDemoMainMenu::UpdateBag()
 		{
 			break;
 		}
+	}
+}
+
+void UDemoMainMenu::RefreshUI()
+{
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+	if (TextGold != nullptr)
+	{
+		TextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+	}
+	if (TextDay != nullptr)
+	{
+		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
+	}
+	if (TextLevel != nullptr)
+	{
+		TextLevel->SetText(FText::FromString(LexToString(PlayerData.Level)));
+	}
+	if (GachaTextGold!=nullptr)
+	{
+		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
 	}
 }

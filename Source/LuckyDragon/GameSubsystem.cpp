@@ -39,12 +39,13 @@ void UGameSubsystem::WriteSaveGame()
 	for (int32 Index = 0;Index < PlayerItems.Num();Index++)
 	{
 		UItem* Item = PlayerItems[Index];
+		UItem* ItemCopy = DuplicateObject(Item,Item->GetOuter());
 		FBagItem BagItem = FBagItem();
 		FMemoryWriter MemWriter(BagItem.ByteData);
 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
 		Ar.ArIsSaveGame = false;
 		Ar.ArNoDelta = true;
-		Item->Serialize(Ar);
+		ItemCopy->Serialize(Ar);
 
 		CurrentSaveGame->PlayerBag.Add(BagItem);
 	}

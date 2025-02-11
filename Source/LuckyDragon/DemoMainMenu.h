@@ -172,4 +172,6 @@ private:
 	void UpdateBag();
 
 	TSubclassOf<class UUserWidget> inventoryWidgetClass;
+
+	void RefreshUI();
 };
