@@ -139,7 +139,7 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
 		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
 		GEngine->AddOnScreenDebugMessage(-1,2,FColor::Red,content);
-		TextAI->SetText(FText::FromString(TEXT("创建完成")));
+		TextAI->SetText(FText::FromString(TEXT("创世成功！")));
 		CheckGameState();
 	}
 	else
@@ -148,6 +148,14 @@ void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
 		CheckGameState();
 	}
 }
+
+void UDemoMainMenu::OnRequestFail(UVaRestRequestJSON* Request)
+{
+	FString content = Request->GetResponseContentAsString();
+	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] content:%s"), *FString(__FUNCTION__), *content);
+	TextAI->SetText(FText::FromString(TEXT("AI创世失败，请重启游戏后再次尝试。")));
+}
+
 void UDemoMainMenu::StartTypewriterEffect(const FString& TextToType, float Interval)
 {
 	FullText = TextToType;
@@ -184,11 +192,15 @@ void UDemoMainMenu::RequestAIData()
 	UVaRestRequestJSON * RequestJSON = VaRestSubsystem->ConstructVaRestRequestExt(EVaRestRequestVerb::POST,EVaRestRequestContentType::json);
 	UVaRestJsonObject* JsonObject = UVaRestSubsystem::StaticConstructVaRestJsonObject();
 	JsonObject->SetStringField(TEXT("role"), TEXT("user"));
-	JsonObject->SetStringField(TEXT("content"), TEXT("Hello!"));
+	JsonObject->SetStringField(TEXT("content"), TEXT("“生成10个游戏NPC数据，每个NPC需包含以下字段：1.name：中文姓名2.type：主播类型（具体领域+直播形式）3.unlock_level：整数解锁等级（1-20）4.tags：3个身份标签（用中文短词描述）5.ability：与角色设定相关的游戏能力（含数值/触发条件）6.specialty：2个特长描述（动词开头短语）7.relationships：至少1个与其他NPC/势力的关联按严格JSON格式返回，键名使用蛇形命名法，禁用注释。”"));
 	const TArray<UVaRestJsonObject*> JsonArray = {JsonObject};
 	UVaRestJsonObject* JsonObject2 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
 	JsonObject2->SetStringField(TEXT("model"), TEXT("deepseek-chat"));
 	JsonObject2->SetObjectArrayField(TEXT("messages"),JsonArray);
+	UVaRestJsonObject* JsonObject3 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject3->SetStringField(TEXT("type"), TEXT("json_object"));
+	JsonObject2->SetObjectField("response_format",JsonObject3);
+
 	RequestJSON->SetRequestObject(JsonObject2);
 	FString ApiKey;
 	const FString DefaultGamePath = FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir());
@@ -196,6 +208,7 @@ void UDemoMainMenu::RequestAIData()
 	RequestJSON->SetHeader(TEXT("Authorization"), ApiKey);
 	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));
 	RequestJSON->OnRequestComplete.AddDynamic(this, &UDemoMainMenu::OnRequestComplete);
+	RequestJSON->OnRequestFail.AddDynamic(this, &UDemoMainMenu::OnRequestFail);
 	FLatentActionInfo LatentInfo = FLatentActionInfo();
 	RequestJSON->ApplyURL(TEXT("https://api.deepseek.com/chat/completions"),ResultObject,this,LatentInfo);
 }

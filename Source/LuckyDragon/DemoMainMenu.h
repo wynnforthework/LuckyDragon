@@ -122,6 +122,9 @@ private:
 	UFUNCTION()
 	void OnRequestComplete(UVaRestRequestJSON * Result);
 
+	UFUNCTION()
+	void OnRequestFail(UVaRestRequestJSON* Request);
+	
 	void PlayStory();
 
 	void RequestAIData();
