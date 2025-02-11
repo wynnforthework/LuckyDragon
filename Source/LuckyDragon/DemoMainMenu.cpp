@@ -15,18 +15,12 @@
 void UDemoMainMenu::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-
-
 }
 
 bool UDemoMainMenu::Initialize()
 {
 	Super::Initialize();
-	if (GetWorld()==nullptr || !GetWorld()->IsPlayInEditor())
-	{
-		return false;
-	}
+
 
 	StartButton->OnClicked.AddDynamic(this, &UDemoMainMenu::StartGame);
 	ContinueButton->OnClicked.AddDynamic(this, &UDemoMainMenu::ContinueGame);
@@ -125,7 +119,7 @@ void UDemoMainMenu::PlayEnterAnimation()
 void UDemoMainMenu::PlayStory()
 {
 	StoryPanel->SetVisibility(ESlateVisibility::Visible);
-	StartTypewriterEffect(TEXT("醒醒\n醒醒\n大龙集团法人龙爷：从今天开始，冻结你的所有银行卡，每天只给你10000元生活费，不让你吃点苦看来你是不会听话的。"), 0.1f);
+	StartTypewriterEffect(TEXT("醒醒          \n醒醒          \n龙泡泡：爸，一天只有一万块钱生活费，你让我怎么活啊。          \n大龙跨国集团董事长龙王：以前太惯着你了，不让你吃点苦看来你是不会听话的，好好反省！。"), 0.1f);
 }
 
 void UDemoMainMenu::HideAllPanel()
@@ -136,6 +130,17 @@ void UDemoMainMenu::HideAllPanel()
 	HomePanel->SetVisibility(ESlateVisibility::Hidden);
 	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
 	GachaPanel->SetVisibility(ESlateVisibility::Hidden);
+	auto a = PopupPanel->GetVisibility();
+	if (a == ESlateVisibility::Hidden)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel隐藏 "), *FString(__FUNCTION__));
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel显示 "), *FString(__FUNCTION__));
+
+	}
 }
 
 void UDemoMainMenu::OnRequestComplete(UVaRestRequestJSON * Result) {
@@ -221,10 +226,32 @@ void UDemoMainMenu::CheckGameState()
 void UDemoMainMenu::ShowPopup()
 {
 	PopupPanel->SetVisibility(ESlateVisibility::Visible);
+	auto a = PopupPanel->GetVisibility();
+	if (a == ESlateVisibility::Hidden)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel隐藏 "), *FString(__FUNCTION__));
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel显示 "), *FString(__FUNCTION__));
+
+	}
 }
 void UDemoMainMenu::ClosePopup()
 {
 	PopupPanel->SetVisibility(ESlateVisibility::Hidden);
+	auto a = PopupPanel->GetVisibility();
+	if (a == ESlateVisibility::Hidden)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel隐藏 "), *FString(__FUNCTION__));
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] PopupPanel显示 "), *FString(__FUNCTION__));
+
+	}
 
 	GetGameInstance()->GetSubsystem<UGameSubsystem>()->UpdateGold(10000);
 	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
@@ -236,6 +263,10 @@ void UDemoMainMenu::ClosePopup()
 	if (TextDay != nullptr)
 	{
 		TextDay->SetText(FText::FromString(LexToString(PlayerData.Day)));
+	}
+	if (TextLevel != nullptr)
+	{
+		TextLevel->SetText(FText::FromString(LexToString(PlayerData.Level)));
 	}
 }
 void UDemoMainMenu::NextDay()
@@ -543,6 +574,11 @@ void UDemoMainMenu::UpdateBag()
 	for (auto iter : GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap())
 	{
 		FItemData* ItemData = (FItemData*)iter.Value;
+		if (ItemData == nullptr)
+		{
+			UE_LOG(LogTemp, Display, TEXT("是空的：%s"),*iter.Key.ToString());
+			continue;
+		}
 		FString _name = ItemData->ItemName.ToString();
 		UE_LOG(LogTemp, Display, TEXT("%s"),*_name);
 		UUserWidget* GiftSlot = Cast<UUserWidget>(BagGiftPanel->GetChildAt(Index++));
@@ -551,6 +587,11 @@ void UDemoMainMenu::UpdateBag()
 			UWidget* SlotLocked = GiftSlot->GetWidgetFromName(TEXT("SlotLocked"));
 			UTextBlock* ItemName = Cast<UTextBlock>(GiftSlot->GetWidgetFromName(TEXT("ItemName")));
 			UTextBlock* Count = Cast<UTextBlock>(GiftSlot->GetWidgetFromName(TEXT("Count")));
+			if (ItemName==nullptr || Count==nullptr)
+			{
+				UE_LOG(LogTemp, Display, TEXT("GiftSlot是空的"));
+				continue;
+			}
 			ItemName->SetText(FText::FromName(ItemData->ItemName));
 			Count->SetText(FText::FromString(FString::FromInt(0)));
 			SlotLocked->SetVisibility(ESlateVisibility::Visible);
