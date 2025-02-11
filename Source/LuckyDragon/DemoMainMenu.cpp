@@ -202,8 +202,9 @@ void UDemoMainMenu::RequestAIData()
 	JsonObject2->SetObjectField("response_format",JsonObject3);
 
 	RequestJSON->SetRequestObject(JsonObject2);
+	
 	FString ApiKey;
-	const FString DefaultGamePath = FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir());
+	const FString DefaultGamePath = FConfigCacheIni::NormalizeConfigIniPath(FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir()));
 	GConfig->GetString(TEXT("DeepSeek"), TEXT("ApiKey"), ApiKey, DefaultGamePath);
 	RequestJSON->SetHeader(TEXT("Authorization"), ApiKey);
 	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));

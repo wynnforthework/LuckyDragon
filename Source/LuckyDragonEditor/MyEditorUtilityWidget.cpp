@@ -45,7 +45,7 @@ void UMyEditorUtilityWidget::RequestSheetData(FString SheetId,FString SheetTitle
 	UVaRestSubsystem* VaRest = GEngine->GetEngineSubsystem<UVaRestSubsystem>();
 	UVaRestRequestJSON* Request = VaRest->ConstructVaRestRequestExt(EVaRestRequestVerb::GET,EVaRestRequestContentType::x_www_form_urlencoded_url);
 	FString Key;
-	const FString DefaultGamePath = FString::Printf(TEXT("%sDeepSeek.ini"),*FPaths::SourceConfigDir());
+	const FString DefaultGamePath = FConfigCacheIni::NormalizeConfigIniPath(FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir()));
 	GConfig->GetString(TEXT("GoogleSheet"),TEXT("ApiKey2"),Key,DefaultGamePath);
 	const FString Url = FString::Printf(TEXT("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s"),*SheetId,*SheetTitle,*Key);
 	Request->OnRequestComplete.AddDynamic(this,&UMyEditorUtilityWidget::OnRequestComplete);
