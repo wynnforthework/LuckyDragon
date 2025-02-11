@@ -3,7 +3,6 @@
 
 #include "GameSubsystem.h"
 
-#include "CrashSightAgent.h"
 #include "MySaveGame.h"
 #include "SaveGameSettings.h"
 #include "Kismet/GameplayStatics.h"
