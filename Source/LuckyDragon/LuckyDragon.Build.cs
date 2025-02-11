@@ -8,9 +8,9 @@ public class LuckyDragon : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "Json", "VaRest", "DeveloperSettings", "CrashSight" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "Json", "VaRest", "DeveloperSettings", "CrashSight","LuckyDragon" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {"Blutility"});
+		PrivateDependencyModuleNames.AddRange(new string[] {});
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

@@ -25,7 +25,7 @@ struct FDataTableAndSheetConfigData
  * 
  */
 UCLASS()
-class LUCKYDRAGON_API UMyEditorUtilityWidget : public UEditorUtilityWidget
+class UMyEditorUtilityWidget : public UEditorUtilityWidget
 {
 	GENERATED_BODY()
 

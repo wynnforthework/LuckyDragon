@@ -12,7 +12,14 @@
 				"UMG",
 				"Engine",
 				"CoreUObject",
-				"DeveloperSettings",
+				"DeveloperSettings"
+			]
+		},
+		{
+			"Name": "LuckyDragonEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
 				"Blutility"
 			]
 		}

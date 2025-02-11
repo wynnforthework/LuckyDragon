@@ -10,6 +10,6 @@ public class LuckyDragonEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V5;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_5;
-		ExtraModuleNames.Add("LuckyDragon");
+		ExtraModuleNames.AddRange(new string[]{"LuckyDragon","LuckyDragonEditor"});
 	}
 }
