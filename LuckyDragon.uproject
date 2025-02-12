@@ -15,14 +15,6 @@
 				"DeveloperSettings"
 			]
 		},
-		{
-			"Name": "LuckyDragonEditor",
-			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit",
-			"AdditionalDependencies": [
-				"Blutility"
-			]
-		}
 	],
 	"Plugins": [
 		{
