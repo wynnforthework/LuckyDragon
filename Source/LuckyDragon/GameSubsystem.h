@@ -50,6 +50,7 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	UPROPERTY()
 	TArray<UItem*> PlayerItems;
 	
 	UDataTable* DT_Gift;
