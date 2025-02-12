@@ -47,9 +47,11 @@ void UDemoMainMenu::NativeConstruct()
 	{
 		GachaTenButton->OnClicked.AddDynamic(this,&UDemoMainMenu::GachaTen);
 	}
-	inventoryWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Widgets/w_inventory_gift_slot_template.w_inventory_gift_slot_template_C"));
+	GiftSlotWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Widgets/w_inventory_gift_slot_template.w_inventory_gift_slot_template_C"));
+	UpSlotWidgetClass = LoadClass<UUserWidget>(nullptr, TEXT("/Game/Widgets/w_shop_categorie_up_template.w_shop_categorie_up_template_C"));
 	HideAllPanel();
 	LoadBag();
+	LoadUp();
 	NewGameState = 0;
 }
 
@@ -153,7 +155,9 @@ void UDemoMainMenu::OnRequestFail(UVaRestRequestJSON* Request)
 {
 	FString content = Request->GetResponseContentAsString();
 	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] content:%s"), *FString(__FUNCTION__), *content);
-	TextAI->SetText(FText::FromString(TEXT("AI创世失败，请重启游戏后再次尝试。")));
+	TextAI->SetText(FText::FromString(TEXT("创世失败，游戏功能将被限制。")));
+	FMessageDialog::Open( EAppMsgCategory::Warning, EAppMsgType::Ok, FText::FromString(TEXT("创世失败，游戏功能将被限制")));
+	CheckGameState();
 }
 
 void UDemoMainMenu::StartTypewriterEffect(const FString& TextToType, float Interval)
@@ -503,7 +507,7 @@ void UDemoMainMenu::GachaOne()
 	{
 		GEngine->AddOnScreenDebugMessage(-1,3,FColor::Red,TEXT("财富不足"));
 		FText MsgTitle = FText::FromString(TEXT("Warning"));
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("财富不足")), &MsgTitle);
+		FMessageDialog::Open( EAppMsgCategory::Error, EAppMsgType::Ok, FText::FromString(TEXT("财富不足")));
 	}
 }
 
@@ -524,15 +528,13 @@ void UDemoMainMenu::GachaTen()
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1,3,FColor::Red,TEXT("财富不足"));
-		FText MsgTitle = FText::FromString(TEXT("Warning"));
- 
-		FMessageDialog::Open(EAppMsgType::Ok, FText::FromString(TEXT("财富不足")), &MsgTitle);
+		FMessageDialog::Open( EAppMsgCategory::Error, EAppMsgType::Ok, FText::FromString(TEXT("财富不足")));
 	}
 }
 
 void UDemoMainMenu::LoadBag()
 {
-	if (BagGiftPanel && inventoryWidgetClass!=nullptr)
+	if (BagGiftPanel && GiftSlotWidgetClass!=nullptr)
 	{
 		BagGiftPanel->ClearChildren();
 		auto MaxCol = ceil(GetGameInstance()->GetSubsystem<UGameSubsystem>()->DT_Gift->GetRowMap().Num()/3);
@@ -540,7 +542,7 @@ void UDemoMainMenu::LoadBag()
 		{
 			for (int32 j=0;j<MaxCol;j++)
 			{
-				auto GiftSlot = CreateWidget<UUserWidget>(this, inventoryWidgetClass);
+				auto GiftSlot = CreateWidget<UUserWidget>(this, GiftSlotWidgetClass);
 				if (GiftSlot!=nullptr)
 				{
 					GiftSlot->SetDesiredSizeInViewport(FVector2D(160.0f,160.0f));
@@ -616,5 +618,33 @@ void UDemoMainMenu::RefreshUI()
 	if (GachaTextGold!=nullptr)
 	{
 		GachaTextGold->SetText(FText::FromString(LexToString(PlayerData.Gold)));
+	}
+}
+
+void UDemoMainMenu::LoadUp()
+{
+	if (UpGridPanel && UpSlotWidgetClass!=nullptr)
+	{
+		UpGridPanel->ClearChildren();
+		for (int32 i=0;i<5;i++)
+		{
+			for (int32 j=0;j<2;j++)
+			{
+				auto UpSlot = CreateWidget<UUserWidget>(this, UpSlotWidgetClass);
+				if (UpSlot!=nullptr)
+				{
+					UpGridPanel->AddChildToUniformGrid(UpSlot,i,j);
+					UWidget* SlotLocked = UpSlot->GetWidgetFromName(TEXT("SlotLocked"));
+					if (i==0 && j == 0)
+					{
+						SlotLocked->SetVisibility(ESlateVisibility::Hidden);
+					}
+					else
+					{
+						SlotLocked->SetVisibility(ESlateVisibility::Visible);
+					}
+				}
+			}
+		}
 	}
 }

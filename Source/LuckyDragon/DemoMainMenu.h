@@ -94,6 +94,9 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
 	class UUniformGridPanel* BagGiftPanel;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUniformGridPanel* UpGridPanel;
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -174,7 +177,10 @@ private:
 	void LoadBag();
 	void UpdateBag();
 
-	TSubclassOf<class UUserWidget> inventoryWidgetClass;
+	TSubclassOf<class UUserWidget> GiftSlotWidgetClass;
+	TSubclassOf<class UUserWidget> UpSlotWidgetClass;
 
 	void RefreshUI();
+
+	void LoadUp();
 };

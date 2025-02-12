@@ -24,7 +24,7 @@ struct FDataTableAndSheetConfigData
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable)
 class UMyEditorUtilityWidget : public UEditorUtilityWidget
 {
 	GENERATED_BODY()

@@ -39,13 +39,13 @@ void UGameSubsystem::WriteSaveGame()
 	for (int32 Index = 0;Index < PlayerItems.Num();Index++)
 	{
 		UItem* Item = PlayerItems[Index];
-		UItem* ItemCopy = DuplicateObject(Item,Item->GetOuter());
+		//UItem* ItemCopy = DuplicateObject(Item,GetTransientPackage());
 		FBagItem BagItem = FBagItem();
 		FMemoryWriter MemWriter(BagItem.ByteData);
 		FObjectAndNameAsStringProxyArchive Ar(MemWriter, false);
-		Ar.ArIsSaveGame = false;
+		Ar.ArIsSaveGame = true;
 		Ar.ArNoDelta = true;
-		ItemCopy->Serialize(Ar);
+		Item->Serialize(Ar);
 
 		CurrentSaveGame->PlayerBag.Add(BagItem);
 	}
@@ -76,9 +76,9 @@ void UGameSubsystem::LoadSaveGame()
 			FBagItem BagItem = CurrentSaveGame->PlayerBag[Index];
 			FMemoryReader MemReader(BagItem.ByteData);
 			FObjectAndNameAsStringProxyArchive Ar(MemReader, false);
-			Ar.ArIsSaveGame = false;
+			Ar.ArIsSaveGame = true;
 			Ar.ArNoDelta = true;
-			UItem* Item = NewObject<UItem>();
+			UItem* Item = NewObject<UItem>(this);
 			Item->Serialize(Ar);
 			PlayerItems.Add(Item);
 		}
@@ -117,7 +117,7 @@ void UGameSubsystem::NewSave()
 		{
 			// FName RowName = iter.Key;
 			FItemData* Row = (FItemData*)iter.Value;
-			UItem* Item = NewObject<UItem>();
+			UItem* Item = NewObject<UItem>(this);
 			Item->ID = Row->ID;
 			Item->Amount = 1;
 			PlayerItems.Add(Item);

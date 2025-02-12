@@ -27,8 +27,8 @@ private:
 protected:
 	FString CurrentSlotName;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UMySaveGame> CurrentSaveGame;
+	UPROPERTY()
+	UMySaveGame* CurrentSaveGame;
 
 public:
 
