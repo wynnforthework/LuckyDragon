@@ -449,11 +449,12 @@ void UDemoMainMenu::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 						UE_LOG(LogTemp, Display, TEXT("恭喜抽中：%s"),*_result_name);
 						UpdateBag();
 						UButton* GachaOneButton = Cast<UButton>(GachaOneWidget->GetWidgetFromName(TEXT("Button")));
-						GachaOneButton->SetIsEnabled(false);
+						GachaOneButton->SetIsEnabled(true);
 						UButton* GachaTenButton = Cast<UButton>(GachaTenWidget->GetWidgetFromName(TEXT("Button")));
-						GachaTenButton->SetIsEnabled(false);
+						GachaTenButton->SetIsEnabled(true);
 						GetGameInstance()->GetSubsystem<UGameSubsystem>()->WriteSaveGame();
 						RandomGiftState = 0;
+						RefreshUI();
 					}
 					else
 					{
