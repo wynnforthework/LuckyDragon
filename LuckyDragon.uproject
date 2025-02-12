@@ -14,16 +14,9 @@
 				"CoreUObject",
 				"DeveloperSettings"
 			]
-		},
+		}
 	],
 	"Plugins": [
-		{
-			"Name": "ModelingToolsEditorMode",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
-		},
 		{
 			"Name": "VaRest",
 			"Enabled": true
