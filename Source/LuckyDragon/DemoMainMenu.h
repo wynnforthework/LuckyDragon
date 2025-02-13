@@ -121,7 +121,8 @@ private:
 
 	UFUNCTION()
 	void AfterDelay();
-	
+
+	void RequestAIData();
 	UFUNCTION()
 	void OnRequestComplete(UVaRestRequestJSON * Result);
 
@@ -130,8 +131,13 @@ private:
 	
 	void PlayStory();
 
-	void RequestAIData();
+	void RequestDifyAiData();
 	
+	UFUNCTION()
+	void OnRequestComplete2(UVaRestRequestJSON * Result);
+
+	UFUNCTION()
+	void OnRequestFail2(UVaRestRequestJSON* Request);
 	void HideAllPanel();
 
 	void CheckGameState();

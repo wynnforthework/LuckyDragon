@@ -105,7 +105,8 @@ void UGameSubsystem::NewSave()
 	CurrentSaveGame = Cast<UMySaveGame>(UGameplayStatics::CreateSaveGameObject(UMySaveGame::StaticClass()));
 	//初始化PlayerData
 	PlayerData = FPlayerSaveData();
-
+	//随机生成一个不会重复的字符串
+	PlayerData.PlayerName = FGuid::NewGuid().ToString();
 	CurrentSaveGame->PlayerData = PlayerData;
 
 	PlayerItems.Empty();

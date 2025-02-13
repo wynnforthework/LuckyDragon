@@ -63,7 +63,8 @@ void UDemoMainMenu::StartGame()
 	RefreshUI();
 	LoginPanel->SetVisibility(ESlateVisibility::Hidden);
 	PlayStory();
-	RequestAIData();
+	// RequestAIData();
+	RequestDifyAiData();
 }
 
 void UDemoMainMenu::ContinueGame()
@@ -160,6 +161,7 @@ void UDemoMainMenu::OnRequestFail(UVaRestRequestJSON* Request)
 	CheckGameState();
 }
 
+
 void UDemoMainMenu::StartTypewriterEffect(const FString& TextToType, float Interval)
 {
 	FullText = TextToType;
@@ -216,6 +218,62 @@ void UDemoMainMenu::RequestAIData()
 	RequestJSON->OnRequestFail.AddDynamic(this, &UDemoMainMenu::OnRequestFail);
 	FLatentActionInfo LatentInfo = FLatentActionInfo();
 	RequestJSON->ApplyURL(TEXT("https://api.deepseek.com/chat/completions"),ResultObject,this,LatentInfo);
+}
+void UDemoMainMenu::RequestDifyAiData()
+{
+	UVaRestSubsystem * VaRestSubsystem = GEngine->GetEngineSubsystem<UVaRestSubsystem>();
+	UVaRestRequestJSON * RequestJSON = VaRestSubsystem->ConstructVaRestRequestExt(EVaRestRequestVerb::POST,EVaRestRequestContentType::json);
+	UVaRestJsonObject* JsonObject = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject->SetStringField(TEXT("response mode"), TEXT("blocking"));
+	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
+	JsonObject->SetStringField(TEXT("user"), PlayerData.PlayerName);
+	JsonObject->SetStringField(TEXT("content"), TEXT("?"));
+	UVaRestJsonObject* JsonObject2 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	UVaRestJsonObject* JsonObject3 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject3->SetStringField(TEXT("sys.query"), TEXT("?"));
+	JsonObject2->SetObjectField("inputs",JsonObject3);
+
+	RequestJSON->SetRequestObject(JsonObject2);
+	
+	FString ApiKey;
+	const FString DefaultGamePath = FConfigCacheIni::NormalizeConfigIniPath(FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir()));
+	GConfig->GetString(TEXT("Dify"), TEXT("ApiKey3"), ApiKey, DefaultGamePath);
+	RequestJSON->SetHeader(TEXT("Authorization"), ApiKey);
+	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));
+	RequestJSON->OnRequestComplete.AddDynamic(this, &UDemoMainMenu::OnRequestComplete2);
+	RequestJSON->OnRequestFail.AddDynamic(this, &UDemoMainMenu::OnRequestFail2);
+	FLatentActionInfo LatentInfo = FLatentActionInfo();
+	RequestJSON->ApplyURL(TEXT("https://api.dify.ai/v1/chat-message"),ResultObject,this,LatentInfo);
+}
+void UDemoMainMenu::OnRequestComplete2(UVaRestRequestJSON * Result) {
+	UE_LOG(LogTemp, Display, TEXT("Response2 Complete"));
+	TArray<UVaRestJsonObject*> VaRestJsonObjects = Result->GetResponseObject()->GetObjectArrayField(TEXT("answer"));
+	if (VaRestJsonObjects.Num()>0)
+	{
+		UVaRestJsonObject* VaRestJsonObject = VaRestJsonObjects[0]->GetObjectField(TEXT("message"));
+		FString role = VaRestJsonObject->GetStringField(TEXT("role"));
+		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
+		GEngine->AddOnScreenDebugMessage(-1,2,FColor::Red,content);
+		TextAI->SetText(FText::FromString(TEXT("创世成功！")));
+		CheckGameState();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
+		TextAI->SetText(FText::FromString(TEXT("创世失败，游戏功能将被限制。")));
+		FMessageDialog::Open( EAppMsgCategory::Warning, EAppMsgType::Ok, FText::FromString(TEXT("创世失败，游戏功能将被限制")));
+		CheckGameState();
+	}
+}
+
+void UDemoMainMenu::OnRequestFail2(UVaRestRequestJSON* Request)
+{
+	FString content = Request->GetResponseContentAsString();
+	UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] content:%s"), *FString(__FUNCTION__), *content);
+	TextAI->SetText(FText::FromString(TEXT("创世失败，游戏功能将被限制。")));
+	FMessageDialog::Open( EAppMsgCategory::Warning, EAppMsgType::Ok, FText::FromString(TEXT("创世失败，游戏功能将被限制")));
+	CheckGameState();
 }
 void UDemoMainMenu::CheckGameState()
 {
