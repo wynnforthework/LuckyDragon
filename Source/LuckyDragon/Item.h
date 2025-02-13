@@ -11,6 +11,13 @@ struct FItemData : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
+	FItemData()
+	{
+		ID = 0;
+		ItemName = "";
+		Price = 0;
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int ID;
 	
