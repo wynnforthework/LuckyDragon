@@ -189,4 +189,6 @@ private:
 	void RefreshUI();
 
 	void LoadUp();
+
+	TSharedPtr<FJsonObject> ParseJsonString(const FString& JsonString);
 };

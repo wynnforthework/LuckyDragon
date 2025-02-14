@@ -227,13 +227,11 @@ void UDemoMainMenu::RequestDifyAiData()
 	JsonObject->SetStringField(TEXT("response mode"), TEXT("blocking"));
 	auto PlayerData = GetGameInstance()->GetSubsystem<UGameSubsystem>()->GetPlayerData();
 	JsonObject->SetStringField(TEXT("user"), PlayerData.PlayerName);
-	JsonObject->SetStringField(TEXT("content"), TEXT("?"));
-	UVaRestJsonObject* JsonObject2 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
+	JsonObject->SetStringField(TEXT("query"), TEXT("?"));
 	UVaRestJsonObject* JsonObject3 = UVaRestSubsystem::StaticConstructVaRestJsonObject();
-	JsonObject3->SetStringField(TEXT("sys.query"), TEXT("?"));
-	JsonObject2->SetObjectField("inputs",JsonObject3);
+	JsonObject->SetObjectField("inputs",JsonObject3);
 
-	RequestJSON->SetRequestObject(JsonObject2);
+	RequestJSON->SetRequestObject(JsonObject);
 	
 	FString ApiKey;
 	const FString DefaultGamePath = FConfigCacheIni::NormalizeConfigIniPath(FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir()));
@@ -242,27 +240,65 @@ void UDemoMainMenu::RequestDifyAiData()
 	RequestJSON->SetHeader(TEXT("Content-Type"),TEXT("application/json"));
 	RequestJSON->OnRequestComplete.AddDynamic(this, &UDemoMainMenu::OnRequestComplete2);
 	RequestJSON->OnRequestFail.AddDynamic(this, &UDemoMainMenu::OnRequestFail2);
+	UE_LOG(LogTemp, Display, TEXT("request json:%s"), *RequestJSON->GetRequestObject()->EncodeJson());
 	FLatentActionInfo LatentInfo = FLatentActionInfo();
-	RequestJSON->ApplyURL(TEXT("https://api.dify.ai/v1/chat-message"),ResultObject,this,LatentInfo);
+	RequestJSON->ApplyURL(TEXT("https://api.dify.ai/v1/chat-messages"),ResultObject,this,LatentInfo);
 }
 void UDemoMainMenu::OnRequestComplete2(UVaRestRequestJSON * Result) {
 	UE_LOG(LogTemp, Display, TEXT("Response2 Complete"));
-	TArray<UVaRestJsonObject*> VaRestJsonObjects = Result->GetResponseObject()->GetObjectArrayField(TEXT("answer"));
-	if (VaRestJsonObjects.Num()>0)
+	auto V1 = Result->GetResponseObject();
+	auto V2 = V1->GetStringField(TEXT("answer"));
+	auto b = V2;
+	// 清理 JSON 字符串
+	b.ReplaceInline(TEXT("L\""), TEXT("\""));
+	b.ReplaceInline(TEXT("\r"), TEXT(""));
+	b.ReplaceInline(TEXT("\n"), TEXT(""));
+	b.ReplaceInline(TEXT("\t"), TEXT(""));
+	b.ReplaceInline(TEXT("```json"), TEXT(""));
+	b.ReplaceInline(TEXT("```"), TEXT(""));
+	b.TrimStartAndEndInline();
+	UE_LOG(LogTemp, Display, TEXT("response json:%s"), *b);
+	// 解析 JSON 字符串
+	TSharedPtr<FJsonObject> JsonObject = ParseJsonString(b);
+	if (!JsonObject.IsValid())
 	{
-		UVaRestJsonObject* VaRestJsonObject = VaRestJsonObjects[0]->GetObjectField(TEXT("message"));
-		FString role = VaRestJsonObject->GetStringField(TEXT("role"));
-		FString content = VaRestJsonObject->GetStringField(TEXT("content"));
-		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s] role:%s content:%s"), *FString(__FUNCTION__), *role, *content);
-		GEngine->AddOnScreenDebugMessage(-1,2,FColor::Red,content);
-		TextAI->SetText(FText::FromString(TEXT("创世成功！")));
+		TextAI->SetText(FText::FromString(TEXT("创世失败，游戏功能将被限制。")));
+		FMessageDialog::Open( EAppMsgCategory::Warning, EAppMsgType::Ok, FText::FromString(TEXT("创世失败，游戏功能将被限制")));
 		CheckGameState();
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[wyh] [%s]"), *FString(__FUNCTION__));
-		TextAI->SetText(FText::FromString(TEXT("创世失败，游戏功能将被限制。")));
-		FMessageDialog::Open( EAppMsgCategory::Warning, EAppMsgType::Ok, FText::FromString(TEXT("创世失败，游戏功能将被限制")));
+		
+		// 访问数组字段
+		const TArray<TSharedPtr<FJsonValue>>* NpcValuesArray;
+		if (JsonObject->TryGetArrayField(TEXT("npc_data"), NpcValuesArray))
+		{
+			auto d = *NpcValuesArray;
+			for (int32 Index = 1;Index<NpcValuesArray->Num();Index++)
+			{
+				const TSharedPtr<FJsonValue>& RowValue = d[Index];
+				UE_LOG(LogTemp, Display, TEXT("npc %d data:%s"),Index, *RowValue->AsObject()->GetStringField("name"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("npc data:不存在"));
+		}
+		const TArray<TSharedPtr<FJsonValue>>* EventValuesArray;
+		if (JsonObject->TryGetArrayField(TEXT("game_events"), EventValuesArray))
+		{
+			auto d = *EventValuesArray;
+			for (int32 Index = 1;Index<EventValuesArray->Num();Index++)
+			{
+				const TSharedPtr<FJsonValue>& RowValue = d[Index];
+				UE_LOG(LogTemp, Display, TEXT("game %d event:%s"),Index, *RowValue->AsObject()->GetStringField("event_name"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Display, TEXT("game event:不存在"));
+		}
+		TextAI->SetText(FText::FromString(TEXT("创世成功！")));
 		CheckGameState();
 	}
 }
@@ -705,5 +741,21 @@ void UDemoMainMenu::LoadUp()
 				}
 			}
 		}
+	}
+}
+TSharedPtr<FJsonObject> UDemoMainMenu::ParseJsonString(const FString& JsonString)
+{
+	TSharedPtr<FJsonObject> JsonObject;
+	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(JsonString);
+
+	if (FJsonSerializer::Deserialize(JsonReader, JsonObject) && JsonObject.IsValid())
+	{
+		UE_LOG(LogTemp, Log, TEXT("JSON 解析成功！"));
+		return JsonObject;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("JSON 解析失败：%s"), *JsonReader->GetErrorMessage());
+		return nullptr;
 	}
 }

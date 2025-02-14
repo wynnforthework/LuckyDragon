@@ -96,9 +96,9 @@ void UGoogleSheetMenu::OnRequestComplete(UVaRestRequestJSON* Result)
 			{
 				auto Config = DataTableAndSheetConfigDatas[CurrentSheetIndex];
 				Config.DataTable->EmptyTable();
+				auto d = *ValuesArray;
 				for (int32 Index = 1;Index<ValuesArray->Num();Index++)
 				{
-					auto d = *ValuesArray;
 					const TSharedPtr<FJsonValue>& RowValue = d[Index];
 					if (RowValue->Type == EJson::Array)
 					{

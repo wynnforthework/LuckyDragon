@@ -42,8 +42,8 @@ void AGameActor::BeginPlay()
 #if WITH_EDITOR
 	if (UIGoogleSheetMenu)
 	{
-		auto GoogleSheetMenu = CreateWidget<UGoogleSheetMenu>(GetWorld(),UIGoogleSheetMenu);
-		GoogleSheetMenu->AddToViewport();
+		// auto GoogleSheetMenu = CreateWidget<UGoogleSheetMenu>(GetWorld(),UIGoogleSheetMenu);
+		// GoogleSheetMenu->AddToViewport();
 	}
 #endif
 	
