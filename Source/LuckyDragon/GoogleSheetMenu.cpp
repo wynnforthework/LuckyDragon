@@ -1,31 +1,32 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "GoogleUtilityWidget.h"
+#include "GoogleSheetMenu.h"
 #include "VaRestSubsystem.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "LuckyDragon/Item.h"
 
-bool UGoogleUtilityWidget::Initialize()
+bool UGoogleSheetMenu::Initialize()
 {
 	Super::Initialize();
 
-	if (DownloadSheetWidget!=nullptr)
+	UButton* DownloadSheetButton = Cast<UButton>(DownloadSheetWidget->GetWidgetFromName(TEXT("Button")));
+	if (DownloadSheetButton)
 	{
-		UButton* DownloadSheetButton = Cast<UButton>(DownloadSheetWidget->GetWidgetFromName(TEXT("Button")));
-		if (DownloadSheetButton)
-		{
-			DownloadSheetButton->OnClicked.AddDynamic(this,&UGoogleUtilityWidget::OnDownloadSheetButtonClicked);
-		}
+		DownloadSheetButton->OnClicked.AddDynamic(this,&UGoogleSheetMenu::OnDownloadSheetButtonClicked);
 	}
-
+	UButton* CloseSheetButton = Cast<UButton>(CloseSheetWidget->GetWidgetFromName(TEXT("ButtonIcon")));
+	if (CloseSheetButton)
+	{
+		CloseSheetButton->OnClicked.AddDynamic(this,&UGoogleSheetMenu::OnCloseButtonClicked);
+	}
 	CurrentSheetIndex = 0;
 	return true;
 }
 
 
-void UGoogleUtilityWidget::OnDownloadSheetButtonClicked()
+void UGoogleSheetMenu::OnDownloadSheetButtonClicked()
 {
 	if (DataTableAndSheetConfigDatas.IsEmpty())
 	{
@@ -43,8 +44,11 @@ void UGoogleUtilityWidget::OnDownloadSheetButtonClicked()
 		RequestSheetData(Config.SpreadsheetId,Config.SheetTitle);
 	}
 }
-
-void UGoogleUtilityWidget::RequestSheetData(FString SheetId,FString SheetTitle)
+void UGoogleSheetMenu::OnCloseButtonClicked()
+{
+	this->RemoveFromViewport();
+}
+void UGoogleSheetMenu::RequestSheetData(FString SheetId,FString SheetTitle)
 {
 	UVaRestSubsystem* VaRest = GEngine->GetEngineSubsystem<UVaRestSubsystem>();
 	UVaRestRequestJSON* Request = VaRest->ConstructVaRestRequestExt(EVaRestRequestVerb::GET,EVaRestRequestContentType::x_www_form_urlencoded_url);
@@ -52,12 +56,12 @@ void UGoogleUtilityWidget::RequestSheetData(FString SheetId,FString SheetTitle)
 	const FString DefaultGamePath = FConfigCacheIni::NormalizeConfigIniPath(FString::Printf(TEXT("%sDeepSeek.ini"), *FPaths::SourceConfigDir()));
 	GConfig->GetString(TEXT("GoogleSheet"),TEXT("ApiKey2"),Key,DefaultGamePath);
 	const FString Url = FString::Printf(TEXT("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s"),*SheetId,*SheetTitle,*Key);
-	Request->OnRequestComplete.AddDynamic(this,&UGoogleUtilityWidget::OnRequestComplete);
+	Request->OnRequestComplete.AddDynamic(this,&UGoogleSheetMenu::OnRequestComplete);
 	FLatentActionInfo LatentActionInfo = FLatentActionInfo();
 	Request->ApplyURL(Url,ResultObject,this,LatentActionInfo);
 }
 
-void UGoogleUtilityWidget::OnRequestComplete(UVaRestRequestJSON* Result)
+void UGoogleSheetMenu::OnRequestComplete(UVaRestRequestJSON* Result)
 {
 	auto logs = TextLogs->GetText().ToString();
 	if (Result->GetResponseCode() == 200)
@@ -137,7 +141,7 @@ void UGoogleUtilityWidget::OnRequestComplete(UVaRestRequestJSON* Result)
 		TextLogs->SetText(FText::FromString(logs));
 	}
 }
-TSharedPtr<FJsonObject> UGoogleUtilityWidget::ParseJsonString(const FString& JsonString)
+TSharedPtr<FJsonObject> UGoogleSheetMenu::ParseJsonString(const FString& JsonString)
 {
 	TSharedPtr<FJsonObject> JsonObject;
 	TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(JsonString);
@@ -153,7 +157,7 @@ TSharedPtr<FJsonObject> UGoogleUtilityWidget::ParseJsonString(const FString& Jso
 		return nullptr;
 	}
 }
-void UGoogleUtilityWidget::AccessJsonData(const TSharedPtr<FJsonObject>& JsonObject)
+void UGoogleSheetMenu::AccessJsonData(const TSharedPtr<FJsonObject>& JsonObject)
 {
 	if (!JsonObject.IsValid())
 	{
@@ -199,4 +203,3 @@ void UGoogleUtilityWidget::AccessJsonData(const TSharedPtr<FJsonObject>& JsonObj
 		}
 	}
 }
-

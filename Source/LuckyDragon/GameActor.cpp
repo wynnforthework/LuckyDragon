@@ -5,6 +5,7 @@
 
 #include "DemoMainMenu.h"
 #include "GameSubsystem.h"
+#include "GoogleSheetMenu.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -38,4 +39,12 @@ void AGameActor::BeginPlay()
 		//播放开始动画
 		MainMenu->PlayEnterAnimation();
 	}
+#if WITH_EDITOR
+	if (UIGoogleSheetMenu)
+	{
+		auto GoogleSheetMenu = CreateWidget<UGoogleSheetMenu>(GetWorld(),UIGoogleSheetMenu);
+		GoogleSheetMenu->AddToViewport();
+	}
+#endif
+	
 }

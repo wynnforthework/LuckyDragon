@@ -3,40 +3,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EditorUtilityWidget.h"
-#include "VaRestJsonObject.h"
-#include "GoogleUtilityWidget.generated.h"
+#include "Blueprint/UserWidget.h"
+#include "VaRestRequestJSON.h"
+#include "GoogleSheetMenu.generated.h"
 
 USTRUCT(BlueprintType)
 struct FDataTableAndSheetConfigData
 {
 	GENERATED_USTRUCT_BODY()
 
-	FDataTableAndSheetConfigData()
-	{
-		DataTable = nullptr;
-	}
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+
 	UDataTable* DataTable;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString SpreadsheetId;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString SheetTitle;
 };
-/**
- * 
- */
+
 UCLASS()
-class LUCKYDRAGON_API UGoogleUtilityWidget : public UEditorUtilityWidget
+class LUCKYDRAGON_API UGoogleSheetMenu : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	UGoogleUtilityWidget(){}
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
 	class UUserWidget* DownloadSheetWidget;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
+	class UUserWidget* CloseSheetWidget;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta=(BindWidget))
 	class UTextBlock* TextLogs;
@@ -46,6 +42,8 @@ public:
 
 	UFUNCTION()
 	void OnDownloadSheetButtonClicked();
+	UFUNCTION()
+	void OnCloseButtonClicked();
 	virtual bool Initialize() override;
 
 	UFUNCTION()

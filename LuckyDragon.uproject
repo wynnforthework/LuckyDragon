@@ -12,8 +12,7 @@
 				"UMG",
 				"Engine",
 				"CoreUObject",
-				"DeveloperSettings",
-				"Blutility"
+				"DeveloperSettings"
 			]
 		}
 	],
@@ -21,10 +20,6 @@
 		{
 			"Name": "VaRest",
 			"Enabled": true
-		},
-		{
-			"Name": "GoogleSheetToDataTable",
-			"Enabled": false
 		}
 	]
 }

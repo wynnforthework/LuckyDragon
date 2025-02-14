@@ -17,6 +17,9 @@ class LUCKYDRAGON_API AGameActor : public ALevelScriptActor
 public:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class UUserWidget> UIMainMenu;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class UUserWidget> UIGoogleSheetMenu;
 
 protected:
 	virtual void BeginPlay() override;
